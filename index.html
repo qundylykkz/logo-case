@@ -1,0 +1,2519 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЛогоКейс – баланың сөйлеу әлеміне бастар жол</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js (3D ойындар мен 3D дыбыс зертханасы үшін) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts: Nunito & Rubik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Rubik:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                        display: ['Rubik', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FFFDF7',
+                        skybg: '#F0F9FF',
+                        coral: '#FF6B4A',
+                        sunny: '#FFC837',
+                        mint: '#2EC4B6',
+                        playblue: '#3A86FF',
+                        berry: '#9B5DE5',
+                    },
+                    boxShadow: {
+                        '3d': '0 6px 0 rgba(0, 0, 0, 0.12)',
+                        '3d-coral': '0 6px 0 #D94E30',
+                        '3d-mint': '0 6px 0 #1F968B',
+                        '3d-blue': '0 6px 0 #2563EB',
+                        '3d-sunny': '0 6px 0 #D9A31E',
+                        'card': '0 10px 25px -5px rgba(58, 134, 255, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FFFDF7;
+            background-image: radial-gradient(#E0F2FE 1.5px, transparent 1.5px), radial-gradient(#FEF3C7 1.5px, #FFFDF7 1.5px);
+            background-size: 36px 36px;
+            background-position: 0 0, 18px 18px;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn-3d {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .card-hover {
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-6px) scale(1.01);
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+        .animate-float {
+            animation: floatSlow 3.5s ease-in-out infinite;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            70% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes shakeWrong {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shakeWrong 0.4s ease-in-out;
+        }
+
+        /* Тіл гимнастикасы анимациялары */
+        @keyframes tongueClock {
+            0%, 100% { transform: translateX(-18px) rotate(-15deg); }
+            50% { transform: translateX(18px) rotate(15deg); }
+        }
+        .anim-tongue-clock {
+            transform-origin: 100px 115px;
+            animation: tongueClock 1.6s ease-in-out infinite;
+        }
+
+        @keyframes tongueSwing {
+            0%, 100% { transform: translateY(-16px) scaleY(0.85); }
+            50% { transform: translateY(16px) scaleY(1.1); }
+        }
+        .anim-tongue-swing {
+            transform-origin: 100px 105px;
+            animation: tongueSwing 1.6s ease-in-out infinite;
+        }
+
+        @keyframes tongueJam {
+            0%, 100% { transform: translate(0, -14px) rotate(0deg); }
+            25% { transform: translate(14px, -6px) rotate(15deg); }
+            50% { transform: translate(0, 8px) rotate(0deg); }
+            75% { transform: translate(-14px, -6px) rotate(-15deg); }
+        }
+        .anim-tongue-jam {
+            transform-origin: 100px 105px;
+            animation: tongueJam 2.4s linear infinite;
+        }
+
+        /* Қолмен сүйрелетін (Draggable) элементтер */
+        .drag-token {
+            touch-action: none;
+            cursor: grab;
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .drag-token:active {
+            cursor: grabbing;
+            transform: scale(1.12);
+            z-index: 50;
+        }
+        .drop-basket {
+            transition: all 0.2s ease;
+        }
+        .drop-basket.drag-over {
+            transform: scale(1.05);
+            border-color: #3A86FF !important;
+            background-color: #E0F2FE !important;
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #FFFDF7; }
+        ::-webkit-scrollbar-thumb { background: #BAE6FD; border-radius: 999px; border: 2px solid #FFFDF7; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Конфетти Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- ЖОҒАРҒЫ НАВИГАЦИЯ ПАНЕЛІ -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b-4 border-sky-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Логотип -->
+            <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer group">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-sunny to-coral p-0.5 shadow-md overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center overflow-hidden relative">
+                        <img src="images/logo.jpg" alt="ЛогоКейс логотипі" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="hidden w-full h-full flex-col items-center justify-center bg-amber-50 text-coral">
+                            <svg class="w-8 h-8" viewBox="0 0 64 64" fill="none">
+                                <circle cx="32" cy="32" r="28" fill="#FFC837" fill-opacity="0.25"/>
+                                <path d="M18 24C18 19.5817 21.5817 16 26 16H38C42.4183 16 46 19.5817 46 24V34C46 38.4183 42.4183 42 38 42H29L21 48V42C19.3431 42 18 40.6569 18 39V24Z" fill="#FF6B4A"/>
+                                <circle cx="27" cy="29" r="2.5" fill="white"/>
+                                <circle cx="37" cy="29" r="2.5" fill="white"/>
+                                <path d="M27 34C28.5 36 35.5 36 37 34" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-display font-extrabold text-xl sm:text-2xl bg-gradient-to-r from-coral via-playblue to-mint bg-clip-text text-transparent tracking-tight">
+                        ЛогоКейс
+                    </span>
+                    <p class="text-xs sm:text-sm font-bold text-slate-500 leading-tight hidden sm:block">
+                        баланың сөйлеу әлеміне бастар жол
+                    </p>
+                </div>
+            </div>
+
+            <!-- Навигация -->
+            <nav class="flex items-center gap-2 sm:gap-3">
+                <button onclick="navigateTo('home')" class="btn-3d px-3 sm:px-4 py-2 rounded-2xl font-display font-bold text-sm sm:text-base bg-sky-100 text-playblue hover:bg-sky-200 flex items-center gap-1.5">
+                    <span>🏠</span> <span class="hidden md:inline">Басты бет</span>
+                </button>
+                <button onclick="navigateTo('gym')" class="btn-3d px-3 sm:px-4 py-2 rounded-2xl font-display font-bold text-sm sm:text-base bg-amber-100 text-amber-700 hover:bg-amber-200 flex items-center gap-1.5">
+                    <span>😛</span> <span class="hidden sm:inline">Тіл ойыны</span>
+                </button>
+                <button onclick="navigateTo('results')" class="btn-3d px-3 sm:px-4 py-2 rounded-2xl font-display font-bold text-sm sm:text-base bg-purple-100 text-berry hover:bg-purple-200 flex items-center gap-1.5">
+                    <span>📸</span> <span class="hidden sm:inline">Нәтижелер</span>
+                </button>
+                <button onclick="navigateTo('rewards')" class="btn-3d px-3 sm:px-4 py-2 rounded-2xl font-display font-bold text-sm sm:text-base bg-emerald-100 text-emerald-700 hover:bg-emerald-200 flex items-center gap-1.5">
+                    <span>🏆</span> <span class="hidden sm:inline">Жұлдыздар</span>
+                </button>
+            </nav>
+
+            <!-- Жұлдызшалар -->
+            <div onclick="navigateTo('rewards')" class="cursor-pointer bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-sunny px-3.5 py-1.5 rounded-2xl flex items-center gap-2 shadow-sm hover:scale-105 transition-transform">
+                <span class="text-xl sm:text-2xl animate-bounce">⭐</span>
+                <div>
+                    <span id="header-stars" class="font-display font-extrabold text-lg sm:text-xl text-amber-700">0</span>
+                    <span class="text-xs font-bold text-amber-600 ml-0.5">жұлдыз</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- НЕГІЗГІ КОНТЕНТ -->
+    <main id="app-container" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <!-- Беттер JS арқылы жүктеледі -->
+    </main>
+
+    <!-- ФУТЕР -->
+    <footer class="bg-white border-t-4 border-sky-100 mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🌈</span>
+                <span class="font-display font-bold text-slate-700">ЛогоКейс – баланың сөйлеу әлеміне бастар жол</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-500">
+                3D және қозғалыс ойындары бар интерактивті логопедиялық платформа
+            </p>
+        </div>
+    </footer>
+
+    <!-- МАРАПАТ МОДАЛЫ -->
+    <div id="reward-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-[32px] border-4 border-sunny p-6 sm:p-8 max-w-md w-full text-center shadow-2xl animate-pop relative overflow-hidden">
+            <div class="text-7xl sm:text-8xl mb-3 animate-bounce">🌟</div>
+            <h3 id="modal-title" class="font-display font-extrabold text-3xl text-slate-800 mb-2">Жарайсың!</h3>
+            <p id="modal-desc" class="text-slate-600 font-bold text-lg mb-5">Тамаша орындадың! 👏</p>
+            <div class="inline-flex items-center gap-2 bg-amber-100 border-2 border-sunny px-5 py-2 rounded-2xl mb-6">
+                <span class="text-3xl">⭐</span>
+                <span class="font-display font-extrabold text-2xl text-amber-700">+1</span>
+            </div>
+            <div>
+                <button onclick="closeRewardModal()" class="btn-3d w-full py-4 rounded-2xl bg-mint text-white font-display font-extrabold text-xl shadow-3d-mint hover:brightness-105">
+                    Алға ➡️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ФОТО ҮЛКЕЙТІП КӨРУ МОДАЛЫ -->
+    <div id="photo-lightbox" onclick="closeLightbox()" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div onclick="event.stopPropagation()" class="bg-white rounded-[28px] border-4 border-white max-w-4xl w-full overflow-hidden shadow-2xl animate-pop">
+            <div class="aspect-video bg-slate-900 relative flex items-center justify-center">
+                <img id="lightbox-img" src="" alt="Нәтиже фотосы" class="w-full h-full object-contain">
+            </div>
+            <div class="p-4 flex items-center justify-between bg-white">
+                <span id="lightbox-caption" class="font-display font-extrabold text-lg text-slate-800"></span>
+                <button onclick="closeLightbox()" class="btn-3d px-5 py-2 rounded-xl bg-coral text-white font-display font-bold">
+                    Жабу ✖
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT: 3D THREE.JS + ҚОЛМЕН СҮЙРЕУ (DRAG & DROP) + ИНТЕРАКТИВТІ ОЙЫНДАР -->
+    <script>
+        // ==========================================
+        // 1. ПРОГРЕСС ЖӘНЕ ДЫБЫСТЫҚ СӨЙЛЕУ (SPEECH SYNTHESIS / WEB AUDIO)
+        // ==========================================
+        let userProgress = {
+            stars: 0,
+            completedTasks: {}
+        };
+
+        try {
+            const saved = localStorage.getItem('logocase_progress_3d_v1');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                userProgress = {
+                    stars: Number(parsed.stars) || 0,
+                    completedTasks: parsed.completedTasks || {}
+                };
+            }
+        } catch (e) {}
+
+        function saveProgress() {
+            try {
+                localStorage.setItem('logocase_progress_3d_v1', JSON.stringify(userProgress));
+            } catch (e) {}
+            const headerStars = document.getElementById('header-stars');
+            if (headerStars) headerStars.textContent = userProgress.stars;
+        }
+
+        // Жеңіл Web Audio дыбыс эффектілері (бала қимылдағанда қызықты дыбыс шығуы үшін)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq = 520, duration = 0.12, type = 'sine') {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playSuccessSound() {
+            playTone(523.25, 0.12, 'triangle');
+            setTimeout(() => playTone(659.25, 0.12, 'triangle'), 100);
+            setTimeout(() => playTone(783.99, 0.25, 'triangle'), 200);
+        }
+
+        function playErrorSound() {
+            playTone(220, 0.2, 'sawtooth');
+        }
+
+        // ==========================================
+        // 2. КОНФЕТТИ ЖӘНЕ МАРАПАТ МОДАЛЫ
+        // ==========================================
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#FF6B4A', '#FFC837', '#2EC4B6', '#3A86FF', '#9B5DE5'];
+            const pieces = Array.from({ length: 75 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 6,
+                h: Math.random() * 6 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vy: Math.random() * 4 + 2.5,
+                vx: (Math.random() - 0.5) * 3,
+                angle: Math.random() * 360,
+                spin: (Math.random() - 0.5) * 10
+            }));
+
+            let frame = 0;
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx;
+                    p.angle += p.spin;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.angle * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                });
+                frame++;
+                if (frame < 95) requestAnimationFrame(draw);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            draw();
+        }
+
+        function awardStar(taskKey, title = 'Жарайсың!', desc = 'Тамаша орындадың! 👏') {
+            if (!userProgress.completedTasks[taskKey]) {
+                userProgress.completedTasks[taskKey] = true;
+                userProgress.stars += 1;
+                saveProgress();
+            }
+            playSuccessSound();
+            launchConfetti();
+
+            const modal = document.getElementById('reward-modal');
+            const mTitle = document.getElementById('modal-title');
+            const mDesc = document.getElementById('modal-desc');
+            if (mTitle) mTitle.textContent = title;
+            if (mDesc) mDesc.textContent = desc;
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeRewardModal() {
+            const modal = document.getElementById('reward-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            cleanupActiveGame();
+            if (currentState.view === 'module') {
+                nextTaskInModule();
+            } else {
+                render();
+            }
+        }
+
+        // ==========================================
+        // 3. 8 БІЛІМ БЕРУ БАҒЫТЫ (3D ОЙЫНДАР + ҚОЛМЕН СҮЙРЕУ + CANVAS ФИЗИКА)
+        // ==========================================
+        const MODULES = [
+            {
+                id: 'mod1',
+                number: '01',
+                title: 'Дыбыстар әлемі (3D & Сүйреу)',
+                shortDesc: '3D ғарыш кемесімен әріптерді ұстау, заттарды себетке салу',
+                icon: '🚀',
+                color: 'coral',
+                bgLight: 'bg-orange-50',
+                borderCol: 'border-orange-200',
+                badgeCol: 'bg-coral text-white',
+                tasks: [
+                    {
+                        type: 'rocket_3d',
+                        title: '3D Ракетамен [Р] жұлдыздарын жина! 🚀',
+                        visualCue: '🚀 👆 ➡️ ⭐',
+                        instruction: 'Саусағыңмен немесе тінтуірмен 3D ракетаны қозғалтып, сақиналардан өт!',
+                        letter: 'Р',
+                        targetStars: 6
+                    },
+                    {
+                        type: 'drag_sort',
+                        title: 'Қолмен сүйреп өз себетіне сал! 🧺',
+                        visualCue: '🍎 🥕 👆 ➡️ 🧺',
+                        instruction: 'Заттарды саусағыңмен ұстап, дұрыс себетке сүйреп апар!',
+                        baskets: [
+                            { id: 'fruit', label: '🍎 Жемістер', bg: 'bg-rose-50 border-rose-300' },
+                            { id: 'veg', label: '🥕 Көкөністер', bg: 'bg-emerald-50 border-emerald-300' }
+                        ],
+                        items: [
+                            { id: 'i1', emoji: '🍎', name: 'Алма', target: 'fruit' },
+                            { id: 'i2', emoji: '🥕', name: 'Сәбіз', target: 'veg' },
+                            { id: 'i3', emoji: '🍌', name: 'Банан', target: 'fruit' },
+                            { id: 'i4', emoji: '🥒', name: 'Қияр', target: 'veg' },
+                            { id: 'i5', emoji: '🍇', name: 'Жүзім', target: 'fruit' },
+                            { id: 'i6', emoji: '🥔', name: 'Картоп', target: 'veg' }
+                        ]
+                    },
+                    {
+                        type: 'articulation_3d',
+                        title: '3D Дыбыс зертханасы: [Р-р-р] & [Ш-ш-ш]',
+                        visualCue: '👄 🔄 3D',
+                        instruction: '3D модельді саусағыңмен айналдырып қара және дыбысты қайтала!',
+                        letter: 'Р',
+                        words: [
+                            { emoji: '🚀', word: 'Ракета' },
+                            { emoji: '🤖', word: 'Робот' },
+                            { emoji: '🎈', word: 'Шар' },
+                            { emoji: '🐯', word: 'Жолбарыс' }
+                        ]
+                    },
+                    {
+                        type: 'catch_basket_game',
+                        title: 'Себетті қозғалтып тек АЛМАЛАРДЫ ұста! 🧺🍎',
+                        visualCue: '⬅️ 🧺 ➡️',
+                        instruction: 'Себетті саусағыңмен оңға-солға жылжытып, түскен алмаларды жина!',
+                        targetEmoji: '🍎',
+                        avoidEmoji: '🪨',
+                        targetCount: 6
+                    }
+                ]
+            },
+            {
+                id: 'mod2',
+                number: '02',
+                title: 'Құлақпен тыңдау және ырғақ',
+                shortDesc: 'Шапалақ соғу, дыбыс орнын жылжымалы жүгіртпемен табу',
+                icon: '👂',
+                color: 'playblue',
+                bgLight: 'bg-sky-50',
+                borderCol: 'border-sky-200',
+                badgeCol: 'bg-playblue text-white',
+                tasks: [
+                    {
+                        type: 'rhythm_repeat',
+                        title: 'Шапалақ ырғағын қайтала! 👏',
+                        visualCue: '👏 👏 🤏 👏',
+                        instruction: 'Үлгідегідей ретімен батырмаларды бас!',
+                        pattern: ['👏', '👏', '🤏', '👏']
+                    },
+                    {
+                        type: 'drag_sort',
+                        title: 'Үлкен және кіші заттарды сүйреп бөл! 🐘🐭',
+                        visualCue: '🐘 👆 ➡️ 📦',
+                        instruction: 'Суреттерді саусағыңмен ұстап, сәйкес қорапқа сал!',
+                        baskets: [
+                            { id: 'big', label: '🐘 ҮЛКЕН', bg: 'bg-amber-50 border-amber-300' },
+                            { id: 'small', label: '🐭 КІШКЕНТАЙ', bg: 'bg-sky-50 border-sky-300' }
+                        ],
+                        items: [
+                            { id: 'b1', emoji: '🐘', name: 'Піл', target: 'big' },
+                            { id: 'b2', emoji: '🐭', name: 'Тышқан', target: 'small' },
+                            { id: 'b3', emoji: '🦒', name: 'Керік', target: 'big' },
+                            { id: 'b4', emoji: '🐞', name: 'Қоңыз', target: 'small' }
+                        ]
+                    },
+                    {
+                        type: 'bubble_physics',
+                        title: 'Ұшып жүрген көпіршіктерді саусақпен жар! 🫧',
+                        visualCue: '🫧 👆 💥',
+                        instruction: 'Қозғалып жүрген көпіршіктерді қуып жетіп жар!',
+                        targetColor: 'all',
+                        count: 8
+                    }
+                ]
+            },
+            {
+                id: 'mod3',
+                number: '03',
+                title: 'Сөздер мен суреттер (Сүйреу)',
+                shortDesc: 'Жануарларды өз үйіне апару, көліктер мен жемістерді сұрыптау',
+                icon: '🧸',
+                color: 'mint',
+                bgLight: 'bg-teal-50',
+                borderCol: 'border-teal-200',
+                badgeCol: 'bg-mint text-white',
+                tasks: [
+                    {
+                        type: 'drag_sort',
+                        title: 'Жануарларды өз үйіне сүйреп апар! 🏠🌲',
+                        visualCue: '🐄 ➡️ 🏠  |  🐻 ➡️ 🌲',
+                        instruction: 'Үй жануарын үйге, орман аңын орманға саусағыңмен апар!',
+                        baskets: [
+                            { id: 'home', label: '🏠 Үй жануарлары', bg: 'bg-amber-50 border-amber-300' },
+                            { id: 'forest', label: '🌲 Орман аңдары', bg: 'bg-emerald-50 border-emerald-300' }
+                        ],
+                        items: [
+                            { id: 'a1', emoji: '🐄', name: 'Сиыр', target: 'home' },
+                            { id: 'a2', emoji: '🐻', name: 'Аю', target: 'forest' },
+                            { id: 'a3', emoji: '🐑', name: 'Қой', target: 'home' },
+                            { id: 'a4', emoji: '🦊', name: 'Түлкі', target: 'forest' },
+                            { id: 'a5', emoji: '🐎', name: 'Жылқы', target: 'home' },
+                            { id: 'a6', emoji: '🐺', name: 'Қасқыр', target: 'forest' }
+                        ]
+                    },
+                    {
+                        type: 'drag_sort',
+                        title: 'Кім қайда жүреді? Аспан және Жер ✈️🚗',
+                        visualCue: '✈️ ➡️ ☁️  |  🚗 ➡️ 🛣️',
+                        instruction: 'Ұшатын заттарды бұлтқа, жүретін көліктерді жолға сүйре!',
+                        baskets: [
+                            { id: 'sky', label: '☁️ Аспанда ұшады', bg: 'bg-sky-50 border-sky-300' },
+                            { id: 'road', label: '🛣️ Жолда жүреді', bg: 'bg-slate-100 border-slate-300' }
+                        ],
+                        items: [
+                            { id: 't1', emoji: '✈️', name: 'Ұшақ', target: 'sky' },
+                            { id: 't2', emoji: '🚗', name: 'Көлік', target: 'road' },
+                            { id: 't3', emoji: '🚁', name: 'Тікұшақ', target: 'sky' },
+                            { id: 't4', emoji: '🚌', name: 'Автобус', target: 'road' }
+                        ]
+                    },
+                    {
+                        type: 'catch_basket_game',
+                        title: 'Себетпен тәтті ЖЕМІСТЕРДІ жина! 🧺🍓',
+                        visualCue: '⬅️ 🧺 ➡️',
+                        instruction: 'Себетті оңға-солға сүйреп, жемістерді қағып ал!',
+                        targetEmoji: '🍓',
+                        avoidEmoji: '🌵',
+                        targetCount: 6
+                    }
+                ]
+            },
+            {
+                id: 'mod4',
+                number: '04',
+                title: 'Суретті әңгіме (1 - 2 - 3)',
+                shortDesc: 'Суреттерді 1-2-3 ұяшықтарына қолмен сүйреп ретімен қою',
+                icon: '📖',
+                color: 'sunny',
+                bgLight: 'bg-amber-50',
+                borderCol: 'border-amber-200',
+                badgeCol: 'bg-amber-500 text-white',
+                tasks: [
+                    {
+                        type: 'drag_sequence',
+                        title: 'Гүл қалай өседі? Ретімен сүйреп қой! 🌱🌿🌻',
+                        visualCue: '1️⃣ ➡️ 2️⃣ ➡️ 3️⃣',
+                        instruction: 'Суреттерді ұстап 1, 2, 3 ұяшықтарына ретімен сүйреп сал!',
+                        steps: [
+                            { step: 1, emoji: '🌱', label: '1-қадам' },
+                            { step: 2, emoji: '🌿', label: '2-қадам' },
+                            { step: 3, emoji: '🌻', label: '3-қадам' }
+                        ]
+                    },
+                    {
+                        type: 'drag_sequence',
+                        title: 'Балапан қалай шығады? Ретімен қой! 🥚🐣🐔',
+                        visualCue: '1️⃣ ➡️ 2️⃣ ➡️ 3️⃣',
+                        instruction: 'Суреттерді 1, 2, 3 ұяшықтарына саусағыңмен сүйреп апар!',
+                        steps: [
+                            { step: 1, emoji: '🥚', label: '1-қадам' },
+                            { step: 2, emoji: '🐣', label: '2-қадам' },
+                            { step: 3, emoji: '🐔', label: '3-қадам' }
+                        ]
+                    },
+                    {
+                        type: 'drag_sequence',
+                        title: 'Аққала жасау реті! ❄️⛄🎩',
+                        visualCue: '1️⃣ ➡️ 2️⃣ ➡️ 3️⃣',
+                        instruction: 'Алдымен қар, сосын аққала, соңында қалпағын қой!',
+                        steps: [
+                            { step: 1, emoji: '❄️', label: '1-қадам' },
+                            { step: 2, emoji: '⛄', label: '2-қадам' },
+                            { step: 3, emoji: '🎩', label: '3-қадам' }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'mod5',
+                number: '05',
+                title: 'Саусақ ойындары (Моторика)',
+                shortDesc: 'Саусақпен жол сызу, ұшатын шарларды жару және 3D пішіндер',
+                icon: '✋',
+                color: 'berry',
+                bgLight: 'bg-purple-50',
+                borderCol: 'border-purple-200',
+                badgeCol: 'bg-berry text-white',
+                tasks: [
+                    {
+                        type: 'finger_trace',
+                        title: 'Қоянды сәбізге саусақпен апар! 🐰〰️🥕',
+                        visualCue: '🐰 👆 ➡️ 🥕',
+                        instruction: 'Саусағыңмен үзік сызықтың бойымен сәбізге дейін жол сыз!',
+                        startEmoji: '🐰',
+                        endEmoji: '🥕',
+                        pathType: 'wave'
+                    },
+                    {
+                        type: 'finger_trace',
+                        title: 'Араны гүлге саусақпен жеткіз! 🐝⚡🌺',
+                        visualCue: '🐝 👆 ➡️ 🌺',
+                        instruction: 'Саусағыңды көтермей гүлге дейін сызып бар!',
+                        startEmoji: '🐝',
+                        endEmoji: '🌺',
+                        pathType: 'zigzag'
+                    },
+                    {
+                        type: 'bubble_physics',
+                        title: 'Түрлі-түсті шарларды қуып жетіп жар! 🎈',
+                        visualCue: '🎈 👆 💥',
+                        instruction: 'Жоғары ұшып бара жатқан шарларды саусақпен бас!',
+                        targetColor: 'all',
+                        count: 10
+                    },
+                    {
+                        type: 'shapes_3d',
+                        title: '3D Пішіндер әлемі: Айналдыр және тап! 🔮',
+                        visualCue: '🔴 🟦 🔺 (3D)',
+                        instruction: '3D пішіндерді саусағыңмен айналдырып көр де, ДӨҢГЕЛЕК ШАРДЫ бас!',
+                        targetShape: 'sphere'
+                    }
+                ]
+            },
+            {
+                id: 'mod6',
+                number: '06',
+                title: 'Нейрожаттығулар (Екі қол)',
+                shortDesc: 'Екі қолмен бірдей жылжыту, 3D нысандарды басқару',
+                icon: '🧠',
+                color: 'coral',
+                bgLight: 'bg-rose-50',
+                borderCol: 'border-rose-200',
+                badgeCol: 'bg-rose-500 text-white',
+                tasks: [
+                    {
+                        type: 'two_hands',
+                        title: 'Екі қолмен бірге бас! 🖐️🤚',
+                        visualCue: '🖐️ + 🤚 (5 рет)',
+                        instruction: 'Сол және оң батырманы екі қолыңмен бірдей бас!',
+                        leftEmoji: '🖐️',
+                        rightEmoji: '🤚',
+                        targetHits: 5
+                    },
+                    {
+                        type: 'rocket_3d',
+                        title: '3D Ғарыш кемесімен жұлдыз жина! 🛸⭐',
+                        visualCue: '🛸 👆 ➡️ ⭐',
+                        instruction: 'Кемені саусағыңмен қозғалтып, сақиналардың ішінен өткіз!',
+                        letter: 'Ғ',
+                        targetStars: 6
+                    },
+                    {
+                        type: 'two_hands',
+                        title: 'Көбелектерді екі қолмен ұста! 🦋🦋',
+                        visualCue: '🦋 + 🦋 (5 рет)',
+                        instruction: 'Екі көбелекті екі қолыңмен бір уақытта бас!',
+                        leftEmoji: '🦋',
+                        rightEmoji: '🦋',
+                        targetHits: 5
+                    }
+                ]
+            },
+            {
+                id: 'mod7',
+                number: '07',
+                title: 'Көңіл-күй және достық',
+                shortDesc: 'Эмоцияларды сәйкестендіру және мейірімділік ойындары',
+                icon: '😊',
+                color: 'mint',
+                bgLight: 'bg-emerald-50',
+                borderCol: 'border-emerald-200',
+                badgeCol: 'bg-emerald-600 text-white',
+                tasks: [
+                    {
+                        type: 'drag_sort',
+                        title: 'Жақсы істерді жүрекке сүйре! ❤️',
+                        visualCue: '🤝 🎁 👆 ➡️ ❤️',
+                        instruction: 'Қуаныш пен достық суреттерін үлкен жүрекке сүйреп сал!',
+                        baskets: [
+                            { id: 'good', label: '❤️ Жақсы іс пен қуаныш', bg: 'bg-rose-50 border-rose-300' },
+                            { id: 'sad', label: '☁️ Мұң мен ашу', bg: 'bg-slate-100 border-slate-300' }
+                        ],
+                        items: [
+                            { id: 'e1', emoji: '😄', name: 'Күлкі', target: 'good' },
+                            { id: 'e2', emoji: '😢', name: 'Жылау', target: 'sad' },
+                            { id: 'e3', emoji: '🤝', name: 'Достық', target: 'good' },
+                            { id: 'e4', emoji: '😠', name: 'Ашу', target: 'sad' }
+                        ]
+                    },
+                    {
+                        type: 'bubble_physics',
+                        title: 'Қуанышты смайликтерді ұста! 😄',
+                        visualCue: '😄 👆 ✨',
+                        instruction: 'Ұшып жүрген күлімсіреген смайликтерді саусақпен бас!',
+                        customEmoji: '😄',
+                        count: 7
+                    }
+                ]
+            },
+            {
+                id: 'mod8',
+                number: '08',
+                title: 'Суретті карточкалар (PECS)',
+                shortDesc: 'Суретті карточкаларды сөйлем жолағына қолмен сүйреп құрау',
+                icon: '🗂️',
+                color: 'playblue',
+                bgLight: 'bg-indigo-50',
+                borderCol: 'border-indigo-200',
+                badgeCol: 'bg-indigo-600 text-white',
+                tasks: [
+                    {
+                        type: 'pecs_drag_builder',
+                        title: 'Сөйлем құра: 🧒 Мен + 🤲 қалаймын + 💧 су',
+                        visualCue: '🧒 ➡️ 🤲 ➡️ 💧',
+                        instruction: 'Карточкаларды жоғарыдағы жолаққа ретімен сүйреп қой!',
+                        targetSequence: ['Мен', 'қалаймын', 'су'],
+                        cards: [
+                            { emoji: '🧒', word: 'Мен' },
+                            { emoji: '🤲', word: 'қалаймын' },
+                            { emoji: '💧', word: 'су' },
+                            { emoji: '🍎', word: 'алма' },
+                            { emoji: '⚽', word: 'доп' }
+                        ]
+                    },
+                    {
+                        type: 'pecs_drag_builder',
+                        title: 'Сөйлем құра: 🧒 Мен + 🍽️ жеймін + 🍎 алма',
+                        visualCue: '🧒 ➡️ 🍽️ ➡️ 🍎',
+                        instruction: 'Карточкаларды жолаққа ретімен сүйреп апар!',
+                        targetSequence: ['Мен', 'жеймін', 'алма'],
+                        cards: [
+                            { emoji: '🧒', word: 'Мен' },
+                            { emoji: '🍽️', word: 'жеймін' },
+                            { emoji: '🍎', word: 'алма' },
+                            { emoji: '🍌', word: 'банан' },
+                            { emoji: '🧸', word: 'ойыншық' }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        const GYM_EXERCISES = [
+            { id: 'clock', title: '«Сағат» жаттығуы', desc: 'Тілді оңға және солға сағат тілі сияқты қозғалт.', animClass: 'anim-tongue-clock', emoji: '🕰️', seconds: 15 },
+            { id: 'swing', title: '«Әткеншек» жаттығуы', desc: 'Тілдің ұшын жоғарғы және төменгі тістерге кезек тигіз.', animClass: 'anim-tongue-swing', emoji: '🎢', seconds: 15 },
+            { id: 'jam', title: '«Тәтті тосап» жаттығуы', desc: 'Жалпақ тілмен ерінді айналдыра жалап шық.', animClass: 'anim-tongue-jam', emoji: '🍓', seconds: 15 },
+            { id: 'horse', title: '«Ат шауып келеді» жаттығуы', desc: 'Тілді таңдайға жапсырып: цок-цок-цок деп дыбыста!', animClass: 'anim-tongue-swing', emoji: '🐎', seconds: 15 }
+        ];
+
+        // ==========================================
+        // 4. НАВИГАЦИЯ ЖӘНЕ ТАЗАЛАУ
+        // ==========================================
+        let currentState = {
+            view: 'home',
+            moduleId: null,
+            taskIndex: 0
+        };
+
+        let activeGameCleanup = null;
+        function cleanupActiveGame() {
+            if (typeof activeGameCleanup === 'function') {
+                activeGameCleanup();
+                activeGameCleanup = null;
+            }
+        }
+
+        function navigateTo(view, moduleId = null, taskIndex = 0) {
+            cleanupActiveGame();
+            currentState = { view, moduleId, taskIndex };
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            render();
+        }
+
+        function render() {
+            const container = document.getElementById('app-container');
+            if (currentState.view === 'home') {
+                container.innerHTML = renderHomePage();
+                initHero3DScene();
+            } else if (currentState.view === 'module') {
+                container.innerHTML = renderModulePage();
+                initTaskInteractiveLogic();
+            } else if (currentState.view === 'gym') {
+                container.innerHTML = renderGymPage();
+            } else if (currentState.view === 'results') {
+                container.innerHTML = renderResultsPage();
+            } else if (currentState.view === 'rewards') {
+                container.innerHTML = renderRewardsPage();
+            }
+        }
+
+        // ==========================================
+        // 5. БАСТЫ БЕТ (HERO + 3D ИНТЕРАКТИВТІ АВАТАР + АВТОР + 8 БАҒЫТ)
+        // ==========================================
+        function renderHomePage() {
+            const totalTasks = MODULES.reduce((sum, m) => sum + m.tasks.length, 0);
+            const completedCount = Object.keys(userProgress.completedTasks).length;
+
+            return `
+                <!-- HERO БӨЛІМІ -->
+                <section class="bg-white rounded-[32px] border-4 border-sky-100 p-6 sm:p-10 shadow-card mb-10 relative overflow-hidden">
+                    <div class="absolute -top-16 -right-16 w-64 h-64 bg-amber-100/60 rounded-full pointer-events-none"></div>
+                    <div class="absolute -bottom-20 -left-16 w-56 h-56 bg-sky-100/70 rounded-full pointer-events-none"></div>
+
+                    <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        <!-- Сол жақ -->
+                        <div class="lg:col-span-7 space-y-6">
+                            <div class="inline-flex items-center gap-2 bg-amber-100 border-2 border-sunny px-4 py-1.5 rounded-full">
+                                <span class="text-lg">🎮</span>
+                                <span class="font-display font-bold text-sm text-amber-800">3D және қолмен қозғалтатын интерактивті ойындар</span>
+                            </div>
+
+                            <h1 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-slate-800 leading-tight">
+                                <span class="text-coral">ЛогоКейс</span> – баланың сөйлеу әлеміне бастар жол
+                            </h1>
+
+                            <p class="text-slate-600 font-bold text-base sm:text-lg leading-relaxed">
+                                Заттарды саусақпен сүйреп, 3D ғарыш кемесін басқарып, көпіршіктерді жарып сөйлеу тілін дамытатын ойын алаңы!
+                            </p>
+
+                            <!-- АВТОР БЛОГЫ (3:4 ФОРМАТ) -->
+                            <div class="bg-gradient-to-r from-sky-50 to-amber-50/70 border-2 border-sky-200 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5 shadow-sm">
+                                <div class="w-36 sm:w-40 aspect-[3/4] rounded-2xl bg-white border-4 border-white shadow-md overflow-hidden flex-shrink-0 relative">
+                                    <img src="images/author.jpeg" alt="Нурманова Жансая Ерланқызы" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="hidden w-full h-full flex-col items-center justify-center bg-gradient-to-br from-sky-100 to-indigo-100 text-playblue p-3 text-center">
+                                        <span class="text-4xl mb-2">👩‍🏫</span>
+                                        <span class="text-[11px] font-extrabold uppercase tracking-wider">Автор суреті (3:4)</span>
+                                        <span class="text-[10px] text-slate-500 font-semibold mt-1">images/author.jpeg</span>
+                                    </div>
+                                </div>
+
+                                <div class="text-center sm:text-left space-y-2">
+                                    <span class="inline-block px-3 py-1 rounded-full bg-playblue/10 text-playblue font-display font-bold text-xs uppercase tracking-wider">
+                                        Платформа авторы:
+                                    </span>
+                                    <h2 class="font-display font-extrabold text-xl sm:text-2xl text-slate-800 leading-snug">
+                                        Нурманова Жансая Ерланқызы
+                                    </h2>
+                                    <p class="text-sm font-bold text-slate-500">
+                                        Балабақша логопед-дефектолог маманы • Бүлдіршіндердің сөйлеу тілін дамыту әдістемесінің авторы
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Жылдам батырмалар -->
+                            <div class="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+                                <a href="#modules-grid" class="btn-3d px-6 py-4 rounded-2xl bg-coral text-white font-display font-extrabold text-lg shadow-3d-coral hover:brightness-105 flex items-center gap-2">
+                                    <span>🚀</span> 3D Ойындар
+                                </a>
+                                <button onclick="navigateTo('gym')" class="btn-3d px-5 py-4 rounded-2xl bg-sunny text-slate-900 font-display font-extrabold text-lg shadow-3d-sunny hover:brightness-105 flex items-center gap-2">
+                                    <span>😛</span> Тіл ойыны
+                                </button>
+                                <button onclick="navigateTo('results')" class="btn-3d px-5 py-4 rounded-2xl bg-berry text-white font-display font-extrabold text-lg shadow-3d hover:brightness-105 flex items-center gap-2">
+                                    <span>📸</span> Нәтижелер
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Оң жақ: Интерактивті 3D Three.js кейіпкер (саусақпен айналдыруға болады) -->
+                        <div class="lg:col-span-5 flex flex-col items-center">
+                            <div class="w-full max-w-sm bg-gradient-to-b from-sky-100 via-indigo-50 to-amber-50 rounded-[32px] p-4 border-4 border-white shadow-lg text-center relative">
+                                <span class="inline-block bg-white/90 text-playblue font-display font-bold text-xs px-3 py-1 rounded-full mb-1 shadow-sm">
+                                    👆 3D ойыншықты саусақпен айналдыр!
+                                </span>
+                                <div id="hero-3d-canvas" class="w-full h-56 rounded-2xl cursor-grab active:cursor-grabbing overflow-hidden"></div>
+
+                                <div class="mt-2 bg-white/90 rounded-2xl p-3.5 border-2 border-sky-100">
+                                    <div class="flex justify-between text-sm font-extrabold text-slate-700 mb-1.5">
+                                        <span>Жалпы үлгерім:</span>
+                                        <span class="text-playblue">${completedCount} / ${totalTasks} ойын</span>
+                                    </div>
+                                    <div class="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-mint to-playblue rounded-full transition-all duration-500" style="width: ${Math.round((completedCount / totalTasks) * 100)}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 8 НЕГІЗГІ БАҒЫТ -->
+                <section id="modules-grid" class="scroll-mt-24">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-2">
+                        <div>
+                            <span class="font-display font-bold text-sm uppercase tracking-wider text-mint">Қозғалыс және 3D ойындар</span>
+                            <h2 class="font-display font-extrabold text-2xl sm:text-3xl text-slate-800">
+                                8 негізгі логопедиялық бағыт
+                            </h2>
+                        </div>
+                        <p class="text-sm font-bold text-slate-500">
+                            Кез келген бағытты ашып, заттарды қозғалтып ойнаңыз 👇
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+                        ${MODULES.map(mod => {
+                            const modDone = mod.tasks.filter((_, idx) => userProgress.completedTasks[`${mod.id}_${idx}`]).length;
+                            const isAllDone = modDone === mod.tasks.length;
+                            return `
+                                <div onclick="navigateTo('module', '${mod.id}', 0)" class="card-hover cursor-pointer bg-white rounded-[28px] border-4 ${mod.borderCol} p-5 shadow-card flex flex-col justify-between relative overflow-hidden group">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-4">
+                                            <span class="px-3 py-1 rounded-xl font-display font-extrabold text-xs ${mod.badgeCol}">
+                                                ${mod.number}-БАҒЫТ
+                                            </span>
+                                            <span class="text-xs font-extrabold px-2.5 py-1 rounded-xl ${isAllDone ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}">
+                                                ${isAllDone ? '✅ Аяқталды' : `${modDone}/${mod.tasks.length} ойын`}
+                                            </span>
+                                        </div>
+
+                                        <div class="w-16 h-16 rounded-2xl ${mod.bgLight} flex items-center justify-center text-4xl mb-4 group-hover:scale-110 transition-transform">
+                                            ${mod.icon}
+                                        </div>
+
+                                        <h3 class="font-display font-extrabold text-lg text-slate-800 leading-snug mb-2 group-hover:text-playblue transition-colors">
+                                            ${mod.title}
+                                        </h3>
+
+                                        <p class="text-sm font-semibold text-slate-500 leading-relaxed mb-4">
+                                            ${mod.shortDesc}
+                                        </p>
+                                    </div>
+
+                                    <div class="pt-3 border-t-2 border-slate-50 flex items-center justify-between font-display font-bold text-sm text-playblue">
+                                        <span>Ойынды бастау</span>
+                                        <span class="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center group-hover:bg-playblue group-hover:text-white transition-colors">➡️</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </section>
+
+                <!-- НӘТИЖЕЛЕР БӨЛІМІНЕ АНОНС -->
+                <section class="mt-10 bg-gradient-to-r from-purple-50 via-sky-50 to-amber-50 rounded-[32px] border-4 border-purple-200 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-card">
+                    <div class="flex items-center gap-4 text-center sm:text-left flex-col sm:flex-row">
+                        <div class="w-16 h-16 rounded-2xl bg-berry text-white text-3xl flex items-center justify-center shadow-md flex-shrink-0">
+                            📸
+                        </div>
+                        <div>
+                            <h3 class="font-display font-extrabold text-2xl text-slate-800">Біздің жетістіктер мен нәтижелер</h3>
+                            <p class="text-slate-600 font-bold text-sm sm:text-base">Балабақша бүлдіршіндерімен жүргізілген жұмыс сәттері (16 фотосурет)</p>
+                        </div>
+                    </div>
+                    <button onclick="navigateTo('results')" class="btn-3d px-6 py-4 rounded-2xl bg-berry text-white font-display font-extrabold text-lg shadow-3d whitespace-nowrap hover:brightness-105">
+                        Фотоларды көру ➡️
+                    </button>
+                </section>
+            `;
+        }
+
+        // Басты беттегі Three.js 3D интерактивті кейіпкер (жұлдызды ғаламшар + айналатын сақиналар)
+        function initHero3DScene() {
+            const box = document.getElementById('hero-3d-canvas');
+            if (!box || typeof THREE === 'undefined') return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, box.clientWidth / box.clientHeight, 0.1, 100);
+            camera.position.set(0, 0.5, 5.2);
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(box.clientWidth, box.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            box.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            dirLight.position.set(4, 6, 5);
+            scene.add(dirLight);
+
+            const group = new THREE.Group();
+            scene.add(group);
+
+            // Орталық көңілді 3D күн/шар
+            const coreGeo = new THREE.IcosahedronGeometry(1.15, 2);
+            const coreMat = new THREE.MeshStandardMaterial({ color: 0xFFC837, roughness: 0.3, metalness: 0.1 });
+            const core = new THREE.Mesh(coreGeo, coreMat);
+            group.add(core);
+
+            // Көздер
+            const eyeGeo = new THREE.SphereGeometry(0.14, 16, 16);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x1E293B });
+            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+            leftEye.position.set(-0.36, 0.2, 1.05);
+            const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+            rightEye.position.set(0.36, 0.2, 1.05);
+            group.add(leftEye, rightEye);
+
+            // Айналатын түрлі-түсті 3D сақиналар
+            const ring1 = new THREE.Mesh(
+                new THREE.TorusGeometry(1.85, 0.12, 16, 48),
+                new THREE.MeshStandardMaterial({ color: 0x3A86FF, roughness: 0.3 })
+            );
+            ring1.rotation.x = 1.1;
+            group.add(ring1);
+
+            const ring2 = new THREE.Mesh(
+                new THREE.TorusGeometry(2.15, 0.09, 16, 48),
+                new THREE.MeshStandardMaterial({ color: 0xFF6B4A, roughness: 0.3 })
+            );
+            ring2.rotation.y = 0.9;
+            group.add(ring2);
+
+            // Орбитадағы кішкентай 3D жұлдызшалар
+            const orbs = [];
+            const orbColors = [0x2EC4B6, 0x9B5DE5, 0xFF6B4A, 0x3A86FF];
+            for (let i = 0; i < 4; i++) {
+                const orb = new THREE.Mesh(
+                    new THREE.OctahedronGeometry(0.26, 0),
+                    new THREE.MeshStandardMaterial({ color: orbColors[i], roughness: 0.25 })
+                );
+                group.add(orb);
+                orbs.push(orb);
+            }
+
+            // Саусақпен/тінтуірмен айналдыру
+            let dragging = false, prevX = 0, prevY = 0;
+            box.onpointerdown = e => { dragging = true; prevX = e.clientX; prevY = e.clientY; };
+            window.addEventListener('pointerup', () => dragging = false);
+            box.onpointermove = e => {
+                if (!dragging) return;
+                group.rotation.y += (e.clientX - prevX) * 0.015;
+                group.rotation.x += (e.clientY - prevY) * 0.015;
+                prevX = e.clientX;
+                prevY = e.clientY;
+            };
+
+            let rafId;
+            function animate(t) {
+                rafId = requestAnimationFrame(animate);
+                const sec = t * 0.001;
+                if (!dragging) {
+                    group.rotation.y += 0.008;
+                    group.position.y = Math.sin(sec * 2) * 0.12;
+                }
+                ring1.rotation.z += 0.015;
+                ring2.rotation.x -= 0.012;
+                orbs.forEach((o, idx) => {
+                    const a = sec * 1.5 + idx * (Math.PI / 2);
+                    o.position.set(Math.cos(a) * 2.2, Math.sin(a * 1.5) * 0.7, Math.sin(a) * 2.2);
+                    o.rotation.y += 0.04;
+                });
+                renderer.render(scene, camera);
+            }
+            animate(0);
+
+            cleanupActiveGame = () => {
+                cancelAnimationFrame(rafId);
+                renderer.dispose();
+            };
+        }
+
+        // ==========================================
+        // 6. МОДУЛЬ ІШІНДЕГІ ОЙЫНДАР БЕТІ
+        // ==========================================
+        function renderModulePage() {
+            const mod = MODULES.find(m => m.id === currentState.moduleId);
+            if (!mod) return renderHomePage();
+            const task = mod.tasks[currentState.taskIndex];
+            const taskKey = `${mod.id}_${currentState.taskIndex}`;
+            const isCompleted = !!userProgress.completedTasks[taskKey];
+
+            return `
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                        <button onclick="navigateTo('home')" class="btn-3d px-4 py-2.5 rounded-2xl bg-white border-2 border-slate-200 font-display font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                            <span>⬅️</span> Барлық бағыттар
+                        </button>
+
+                        <div class="flex items-center gap-2 flex-wrap">
+                            ${mod.tasks.map((t, idx) => {
+                                const done = userProgress.completedTasks[`${mod.id}_${idx}`];
+                                const active = idx === currentState.taskIndex;
+                                return `
+                                    <button onclick="navigateTo('module', '${mod.id}', ${idx})" class="w-10 h-10 rounded-2xl font-display font-extrabold text-sm transition-all flex items-center justify-center border-2 ${
+                                        active ? 'bg-playblue text-white border-playblue scale-110 shadow-md' :
+                                        done ? 'bg-emerald-100 text-emerald-700 border-emerald-300' :
+                                        'bg-white text-slate-600 border-slate-200 hover:border-playblue'
+                                    }">
+                                        ${done ? '⭐' : idx + 1}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[32px] border-4 ${mod.borderCol} p-6 sm:p-8 shadow-card">
+                        <div class="flex items-center gap-3 mb-4 pb-4 border-b-2 border-slate-100">
+                            <span class="text-3xl sm:text-4xl">${mod.icon}</span>
+                            <div>
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">${mod.number}-БАҒЫТ</span>
+                                <h2 class="font-display font-extrabold text-xl sm:text-2xl text-slate-800">${mod.title}</h2>
+                            </div>
+                        </div>
+
+                        <div class="bg-sky-50/70 rounded-3xl p-5 sm:p-6 border-2 border-sky-100 mb-6 text-center sm:text-left">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <h3 class="font-display font-extrabold text-2xl sm:text-3xl text-playblue">${task.title}</h3>
+                                ${isCompleted ? '<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm whitespace-nowrap">⭐ Орындалған</span>' : ''}
+                            </div>
+                            ${task.visualCue ? `
+                                <div class="inline-block bg-white border-2 border-amber-200 px-5 py-2 rounded-2xl text-2xl sm:text-3xl font-display font-extrabold text-slate-800 my-2 shadow-sm">
+                                    ${task.visualCue}
+                                </div>
+                            ` : ''}
+                            <p class="text-slate-600 font-bold text-base sm:text-lg mt-1">${task.instruction}</p>
+                        </div>
+
+                        <!-- ИНТЕРАКТИВТІ 3D НЕМЕСЕ ҚОЗҒАЛЫС ОЙЫН АЙМАҒЫ -->
+                        <div id="interactive-task-body" class="min-h-[300px]">
+                            ${renderTaskBody(task, taskKey)}
+                        </div>
+
+                        <div class="flex items-center justify-between mt-8 pt-5 border-t-2 border-slate-100">
+                            <button onclick="prevTaskInModule()" ${currentState.taskIndex === 0 ? 'disabled class="opacity-40 cursor-not-allowed px-5 py-3 rounded-2xl bg-slate-100 font-display font-bold text-slate-500"' : 'class="btn-3d px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 font-display font-bold text-slate-700"'}>
+                                ⬅️ Алдыңғы
+                            </button>
+                            <span class="font-display font-extrabold text-slate-400">
+                                ${currentState.taskIndex + 1} / ${mod.tasks.length}
+                            </span>
+                            <button onclick="nextTaskInModule()" class="btn-3d px-5 py-3 rounded-2xl bg-playblue text-white font-display font-bold shadow-3d-blue hover:brightness-105">
+                                ${currentState.taskIndex === mod.tasks.length - 1 ? 'Бағытты аяқтау 🎉' : 'Келесі ➡️'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function prevTaskInModule() {
+            if (currentState.taskIndex > 0) {
+                navigateTo('module', currentState.moduleId, currentState.taskIndex - 1);
+            }
+        }
+
+        function nextTaskInModule() {
+            const mod = MODULES.find(m => m.id === currentState.moduleId);
+            if (currentState.taskIndex < mod.tasks.length - 1) {
+                navigateTo('module', currentState.moduleId, currentState.taskIndex + 1);
+            } else {
+                navigateTo('home');
+            }
+        }
+
+        // ==========================================
+        // 7. ЖАҢА ИНТЕРАКТИВТІ ОЙЫН МЕХАНИКАЛАРЫНЫҢ HTML ҚҰРЫЛЫМЫ
+        // ==========================================
+        function renderTaskBody(task, taskKey) {
+            // 1. 3D Ғарыш ракетасы (Three.js) — саусақпен қозғалтып жұлдыз жинау
+            if (task.type === 'rocket_3d') {
+                return `
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between bg-slate-900 text-white px-5 py-3 rounded-2xl">
+                            <span class="font-display font-bold text-sm sm:text-base">👆 Саусағыңмен ракетаны қозғалт!</span>
+                            <span class="font-display font-extrabold text-xl text-sunny">⭐ <span id="rocket-score">0</span> / ${task.targetStars}</span>
+                        </div>
+                        <div id="rocket-3d-stage" class="w-full h-80 sm:h-96 rounded-3xl overflow-hidden border-4 border-sky-300 shadow-inner bg-slate-900 touch-none cursor-grab active:cursor-grabbing relative"></div>
+                    </div>
+                `;
+            }
+
+            // 2. Қолмен сүйреп себетке салу (Drag & Drop Sorting)
+            if (task.type === 'drag_sort') {
+                const shuffled = [...task.items].sort(() => Math.random() - 0.5);
+                return `
+                    <div class="space-y-6" id="drag-sort-arena">
+                        <!-- Сүйрелетін заттар аймағы -->
+                        <div id="drag-items-pool" class="flex flex-wrap justify-center gap-4 min-h-[110px] bg-slate-50 p-4 rounded-3xl border-2 border-dashed border-slate-300">
+                            ${shuffled.map(item => `
+                                <div id="drag-${item.id}" data-target="${item.target}" class="drag-token bg-white border-4 border-slate-200 rounded-3xl p-4 w-28 sm:w-32 text-center shadow-md select-none">
+                                    <div class="text-5xl mb-1 pointer-events-none">${item.emoji}</div>
+                                    <div class="font-display font-extrabold text-sm text-slate-700 pointer-events-none">${item.name}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Себеттер (Drop Zones) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            ${task.baskets.map(b => `
+                                <div data-basket-id="${b.id}" class="drop-basket ${b.bg} border-4 rounded-3xl p-5 min-h-[160px] flex flex-col items-center justify-between text-center">
+                                    <div class="font-display font-extrabold text-xl text-slate-800 mb-2">${b.label}</div>
+                                    <div class="basket-items flex flex-wrap justify-center gap-2 min-h-[60px]"></div>
+                                    <span class="text-xs font-bold text-slate-400">Осында сүйреп әкел 👇</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. Қолмен сүйреп 1-2-3 ретімен қою (Drag Sequence)
+            if (task.type === 'drag_sequence') {
+                const shuffled = [...task.steps].sort(() => Math.random() - 0.5);
+                return `
+                    <div class="space-y-6" id="drag-seq-arena">
+                        <!-- Реттік ұяшықтар 1 - 2 - 3 -->
+                        <div class="grid grid-cols-3 gap-3 sm:gap-5">
+                            ${task.steps.map(s => `
+                                <div data-step-slot="${s.step}" class="drop-basket bg-amber-50/80 border-4 border-dashed border-amber-300 rounded-3xl p-4 min-h-[145px] flex flex-col items-center justify-center text-center">
+                                    <span class="w-9 h-9 rounded-full bg-amber-400 text-slate-900 font-display font-extrabold text-lg flex items-center justify-center mb-1">${s.step}</span>
+                                    <span class="font-display font-bold text-xs text-amber-700 slot-hint">Осында қой</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Араласқан суреттер -->
+                        <div id="seq-tokens-pool" class="flex flex-wrap justify-center gap-4 bg-slate-50 p-5 rounded-3xl border-2 border-slate-200">
+                            ${shuffled.map(s => `
+                                <div data-step-val="${s.step}" data-emoji="${s.emoji}" class="drag-token bg-white border-4 border-playblue/30 rounded-3xl p-5 w-28 sm:w-32 text-center shadow-md">
+                                    <div class="text-6xl pointer-events-none">${s.emoji}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. Қозғалатын себетпен заттарды қағып алу (Catch Basket Canvas Game)
+            if (task.type === 'catch_basket_game') {
+                return `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-sky-100 px-5 py-3 rounded-2xl">
+                            <span class="font-display font-bold text-playblue">⬅️ Себетті саусақпен оңға-солға жылжыт ➡️</span>
+                            <span class="font-display font-extrabold text-xl text-slate-800">${task.targetEmoji} <span id="catch-score">0</span> / ${task.targetCount}</span>
+                        </div>
+                        <canvas id="catch-canvas" width="640" height="340" class="w-full h-72 sm:h-80 rounded-3xl border-4 border-sky-200 bg-gradient-to-b from-sky-100 to-emerald-50 touch-none cursor-ew-resize block"></canvas>
+                    </div>
+                `;
+            }
+
+            // 5. Ұшып жүрген көпіршіктерді қуып жетіп жару (Physics Bubbles Canvas)
+            if (task.type === 'bubble_physics') {
+                return `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-purple-100 px-5 py-3 rounded-2xl">
+                            <span class="font-display font-bold text-berry">👆 Ұшып жүрген шарларды саусақпен түртіп жар!</span>
+                            <span class="font-display font-extrabold text-xl text-slate-800">💥 <span id="phys-bubble-score">0</span> / ${task.count}</span>
+                        </div>
+                        <canvas id="bubble-canvas" width="640" height="340" class="w-full h-72 sm:h-80 rounded-3xl border-4 border-purple-200 bg-gradient-to-b from-indigo-50 to-sky-100 touch-none cursor-pointer block"></canvas>
+                    </div>
+                `;
+            }
+
+            // 6. 3D Пішіндер әлемі (Three.js Interactive 3D Shapes)
+            if (task.type === 'shapes_3d') {
+                return `
+                    <div class="space-y-4 text-center">
+                        <div id="shapes-3d-stage" class="w-full h-72 sm:h-80 rounded-3xl border-4 border-purple-200 bg-gradient-to-b from-slate-900 to-indigo-950 touch-none cursor-grab overflow-hidden"></div>
+                        <p class="font-display font-bold text-slate-600">👆 3D пішіндерді саусақпен айналдыр, сосын ДӨҢГЕЛЕК ШАРДЫ бас!</p>
+                    </div>
+                `;
+            }
+
+            // 7. 3D Артикуляциялық модель (Three.js 3D Mouth/Sound Lab)
+            if (task.type === 'articulation_3d') {
+                return `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div class="bg-amber-50 rounded-3xl p-4 border-2 border-amber-200 text-center">
+                            <div id="art-3d-stage" class="w-full h-56 rounded-2xl bg-white/80 cursor-grab touch-none overflow-hidden mb-3"></div>
+                            <p class="text-sm font-bold text-amber-900 bg-white/90 p-3 rounded-2xl">
+                                👆 3D модельді саусағыңмен айналдырып қара!
+                            </p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h4 class="font-display font-extrabold text-lg text-slate-700">Суреттерді басып сөздерді қайтала:</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                ${task.words.map(w => `
+                                    <div onclick="playTone(620, 0.15); this.classList.add('scale-105','border-mint'); setTimeout(()=>this.classList.remove('scale-105'), 300)" class="cursor-pointer bg-white border-2 border-slate-200 hover:border-playblue rounded-2xl p-4 text-center transition-all shadow-sm">
+                                        <div class="text-4xl mb-1">${w.emoji}</div>
+                                        <div class="font-display font-extrabold text-slate-800">${w.word}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button onclick="awardStar('${taskKey}', 'Тамаша!', '3D дыбыс жаттығуын орындадың!')" class="btn-3d w-full py-4 rounded-2xl bg-mint text-white font-display font-extrabold text-lg shadow-3d-mint mt-2">
+                                ✅ Мен дұрыс қайталадым!
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 8. PECS карточкаларын сүйреп сөйлем құрау (Drag PECS)
+            if (task.type === 'pecs_drag_builder') {
+                return `
+                    <div class="space-y-6" id="pecs-drag-arena">
+                        <!-- Жоғарыдағы бос сөйлем ұяшықтары -->
+                        <div class="grid grid-cols-3 gap-3 sm:gap-4 bg-indigo-50/70 p-4 rounded-3xl border-4 border-dashed border-indigo-300">
+                            ${task.targetSequence.map((word, idx) => `
+                                <div data-pecs-slot="${idx}" data-expected="${word}" class="drop-basket bg-white rounded-2xl p-4 min-h-[120px] flex flex-col items-center justify-center border-2 border-indigo-200 text-center">
+                                    <span class="font-display font-extrabold text-indigo-400 text-lg">${idx + 1}</span>
+                                    <span class="text-xs font-bold text-slate-400">Осында сүйре</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Төмендегі сүйрелетін карточкалар -->
+                        <div class="flex flex-wrap justify-center gap-4">
+                            ${task.cards.map(c => `
+                                <div data-pecs-word="${c.word}" data-pecs-emoji="${c.emoji}" class="drag-token bg-white border-4 border-slate-200 rounded-3xl p-4 w-28 sm:w-32 text-center shadow-md">
+                                    <div class="text-5xl mb-1 pointer-events-none">${c.emoji}</div>
+                                    <div class="font-display font-extrabold text-base text-slate-800 pointer-events-none">${c.word}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 9. Саусақпен із салу (Finger Trace)
+            if (task.type === 'finger_trace') {
+                return `
+                    <div class="text-center space-y-4">
+                        <div class="relative bg-white rounded-3xl border-4 border-purple-200 overflow-hidden shadow-inner mx-auto max-w-xl">
+                            <canvas id="trace-canvas" width="560" height="240" class="w-full h-56 touch-none cursor-crosshair block"></canvas>
+                        </div>
+                        <div class="flex justify-center gap-3">
+                            <button onclick="initTraceCanvas('${task.startEmoji}', '${task.endEmoji}', '${task.pathType}', '${taskKey}')" class="btn-3d px-4 py-2.5 rounded-2xl bg-slate-100 font-display font-bold text-slate-700">
+                                🔄 Қайта сызу
+                            </button>
+                            <button onclick="awardStar('${taskKey}', 'Керемет суретші!', 'Жолды дәл әрі әдемі сызып шықтың!')" class="btn-3d px-6 py-2.5 rounded-2xl bg-mint text-white font-display font-extrabold shadow-3d-mint">
+                                ✅ Жолды аяқтадым!
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 10. Шапалақ ырғағы (Rhythm Repeat)
+            if (task.type === 'rhythm_repeat') {
+                return `
+                    <div class="text-center space-y-6">
+                        <div class="bg-white border-4 border-amber-200 rounded-3xl p-5 inline-block">
+                            <p class="text-xs font-extrabold uppercase text-slate-400 mb-2">Үлгі ырғақ:</p>
+                            <div class="flex items-center justify-center gap-3 text-4xl sm:text-5xl">
+                                ${task.pattern.map(p => `<span class="bg-amber-50 p-3 rounded-2xl border-2 border-amber-200">${p}</span>`).join('')}
+                            </div>
+                        </div>
+
+                        <div id="rhythm-user-strip" class="min-h-[76px] bg-slate-100 rounded-3xl p-3 flex items-center justify-center gap-3 max-w-md mx-auto border-2 border-dashed border-slate-300">
+                            <span class="text-slate-400 font-bold text-sm">Төмендегі батырмаларды ретімен бас 👇</span>
+                        </div>
+
+                        <div class="flex justify-center gap-4">
+                            <button onclick="addRhythmTap('👏', ${JSON.stringify(task.pattern).replace(/"/g, '&quot;')}, '${taskKey}')" class="btn-3d px-6 py-4 rounded-3xl bg-sunny text-slate-900 font-display font-extrabold text-xl shadow-3d-sunny">
+                                👏 Үлкен шапалақ
+                            </button>
+                            <button onclick="addRhythmTap('🤏', ${JSON.stringify(task.pattern).replace(/"/g, '&quot;')}, '${taskKey}')" class="btn-3d px-6 py-4 rounded-3xl bg-sky-200 text-playblue font-display font-extrabold text-xl shadow-3d">
+                                🤏 Кіші шапалақ
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 11. Екі қолмен бірдей басу (Two Hands Neuro)
+            if (task.type === 'two_hands') {
+                return `
+                    <div class="text-center space-y-6">
+                        <div class="grid grid-cols-2 gap-6 max-w-lg mx-auto">
+                            <button id="neuro-left-btn" onclick="tapNeuroSide('left', ${task.targetHits}, '${taskKey}')" class="btn-3d h-44 rounded-3xl bg-amber-100 border-4 border-sunny flex flex-col items-center justify-center gap-2 shadow-3d-sunny">
+                                <span class="text-6xl">${task.leftEmoji}</span>
+                                <span class="font-display font-extrabold text-amber-800">СОЛ ҚОЛ</span>
+                            </button>
+                            <button id="neuro-right-btn" onclick="tapNeuroSide('right', ${task.targetHits}, '${taskKey}')" class="btn-3d h-44 rounded-3xl bg-sky-100 border-4 border-playblue flex flex-col items-center justify-center gap-2 shadow-3d-blue">
+                                <span class="text-6xl">${task.rightEmoji}</span>
+                                <span class="font-display font-extrabold text-playblue">ОҢ ҚОЛ</span>
+                            </button>
+                        </div>
+                        <div class="font-display font-extrabold text-xl text-slate-700">
+                            Орындалды: <span id="neuro-hits" class="text-coral">0</span> / ${task.targetHits}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return '';
+        }
+
+        // ==========================================
+        // 8. 3D ОЙЫНДАР МЕН ҚОЛМЕН СҮЙРЕУ (POINTER DRAG) ЛОГИКАСЫ
+        // ==========================================
+        let taskRuntimeState = {};
+
+        function initTaskInteractiveLogic() {
+            taskRuntimeState = {
+                rhythmTaps: [],
+                neuroHits: 0,
+                neuroLeftReady: false,
+                neuroRightReady: false
+            };
+
+            const mod = MODULES.find(m => m.id === currentState.moduleId);
+            if (!mod) return;
+            const task = mod.tasks[currentState.taskIndex];
+            const taskKey = `${mod.id}_${currentState.taskIndex}`;
+            if (!task) return;
+
+            setTimeout(() => {
+                if (task.type === 'rocket_3d') {
+                    initRocket3DGame(task, taskKey);
+                } else if (task.type === 'drag_sort') {
+                    initDragSortGame(task, taskKey);
+                } else if (task.type === 'drag_sequence') {
+                    initDragSequenceGame(task, taskKey);
+                } else if (task.type === 'catch_basket_game') {
+                    initCatchBasketGame(task, taskKey);
+                } else if (task.type === 'bubble_physics') {
+                    initBubblePhysicsGame(task, taskKey);
+                } else if (task.type === 'shapes_3d') {
+                    initShapes3DGame(task, taskKey);
+                } else if (task.type === 'articulation_3d') {
+                    initArticulation3DModel(task);
+                } else if (task.type === 'pecs_drag_builder') {
+                    initPecsDragGame(task, taskKey);
+                } else if (task.type === 'finger_trace') {
+                    initTraceCanvas(task.startEmoji, task.endEmoji, task.pathType, taskKey);
+                }
+            }, 50);
+        }
+
+        // --- A. 3D РАКЕТА ОЙЫНЫ (Three.js — жіберілген кодтағы 3D ракета механикасы) ---
+        function initRocket3DGame(task, taskKey) {
+            const box = document.getElementById('rocket-3d-stage');
+            if (!box || typeof THREE === 'undefined') return;
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0B132B);
+            scene.fog = new THREE.Fog(0x0B132B, 14, 42);
+
+            const camera = new THREE.PerspectiveCamera(58, box.clientWidth / box.clientHeight, 0.1, 80);
+            camera.position.set(0, 1.5, 7);
+            camera.lookAt(0, 0, -5);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(box.clientWidth, box.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            box.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+            const dir = new THREE.DirectionalLight(0xffffff, 1);
+            dir.position.set(5, 8, 5);
+            scene.add(dir);
+
+            // Ғарыш жұлдыздары
+            const starPos = [];
+            for (let i = 0; i < 180; i++) {
+                starPos.push((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 30, -Math.random() * 45);
+            }
+            const starGeo = new THREE.BufferGeometry();
+            starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+            scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.16 })));
+
+            // 3D Ракета моделі
+            const rocket = new THREE.Group();
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.28, 0.36, 1.4, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.3 })
+            );
+            body.rotation.x = Math.PI / 2;
+            const nose = new THREE.Mesh(
+                new THREE.ConeGeometry(0.28, 0.55, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFF6B4A })
+            );
+            nose.rotation.x = -Math.PI / 2;
+            nose.position.z = -0.95;
+
+            const wingGeo = new THREE.BoxGeometry(0.95, 0.06, 0.45);
+            const wingMat = new THREE.MeshStandardMaterial({ color: 0x3A86FF });
+            const wings = new THREE.Mesh(wingGeo, wingMat);
+            wings.position.z = 0.4;
+
+            const flame = new THREE.Mesh(
+                new THREE.ConeGeometry(0.22, 0.6, 12),
+                new THREE.MeshBasicMaterial({ color: 0xFFC837 })
+            );
+            flame.rotation.x = Math.PI / 2;
+            flame.position.z = 0.95;
+
+            rocket.add(body, nose, wings, flame);
+            rocket.position.set(0, 0, 2);
+            scene.add(rocket);
+
+            // Сақиналар мен жұлдыздар
+            const rings = [];
+            const ringColors = [0xFFC837, 0x2EC4B6, 0xFF6B4A, 0x3A86FF, 0x9B5DE5];
+            for (let i = 0; i < 4; i++) {
+                const rg = new THREE.Group();
+                const torus = new THREE.Mesh(
+                    new THREE.TorusGeometry(1.15, 0.12, 12, 32),
+                    new THREE.MeshStandardMaterial({ color: ringColors[i % ringColors.length], roughness: 0.3 })
+                );
+                const starOrb = new THREE.Mesh(
+                    new THREE.OctahedronGeometry(0.35, 0),
+                    new THREE.MeshStandardMaterial({ color: 0xFFC837, emissive: 0xFF9F1C, emissiveIntensity: 0.4 })
+                );
+                rg.add(torus, starOrb);
+                rg.position.set((Math.random() - 0.5) * 4.5, (Math.random() - 0.5) * 2.5, -10 - i * 10);
+                scene.add(rg);
+                rings.push({ mesh: rg, orb: starOrb, hit: false });
+            }
+
+            let targetX = 0, targetY = 0;
+            function updatePointer(e) {
+                const rect = box.getBoundingClientRect();
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                const nx = ((cx - rect.left) / rect.width) * 2 - 1;
+                const ny = -((cy - rect.top) / rect.height) * 2 + 1;
+                targetX = Math.max(-3.2, Math.min(3.2, nx * 3.5));
+                targetY = Math.max(-2.0, Math.min(2.0, ny * 2.2));
+            }
+            box.onpointermove = updatePointer;
+            box.onpointerdown = updatePointer;
+
+            let score = 0;
+            let done = false;
+            let rafId;
+
+            function animate(t) {
+                if (done) return;
+                rafId = requestAnimationFrame(animate);
+
+                rocket.position.x += (targetX - rocket.position.x) * 0.14;
+                rocket.position.y += (targetY - rocket.position.y) * 0.14;
+                rocket.rotation.z = (rocket.position.x - targetX) * 0.5;
+                rocket.rotation.x = (targetY - rocket.position.y) * 0.35;
+                flame.scale.y = 0.8 + Math.sin(t * 0.03) * 0.3;
+
+                rings.forEach(r => {
+                    r.mesh.position.z += 0.16;
+                    r.orb.rotation.y += 0.05;
+
+                    if (!r.hit && Math.abs(r.mesh.position.z - rocket.position.z) < 0.7) {
+                        const dist = Math.hypot(r.mesh.position.x - rocket.position.x, r.mesh.position.y - rocket.position.y);
+                        if (dist < 1.35) {
+                            r.hit = true;
+                            r.orb.visible = false;
+                            score++;
+                            playTone(580 + score * 60, 0.15, 'triangle');
+                            const el = document.getElementById('rocket-score');
+                            if (el) el.textContent = score;
+                            if (score >= task.targetStars) {
+                                done = true;
+                                setTimeout(() => awardStar(taskKey, 'Ғарыш батыры! 🚀', 'Барлық жұлдыздарды жинап шықтың!'), 250);
+                            }
+                        }
+                    }
+
+                    if (r.mesh.position.z > 5) {
+                        r.mesh.position.z = -35;
+                        r.mesh.position.x = (Math.random() - 0.5) * 4.5;
+                        r.mesh.position.y = (Math.random() - 0.5) * 2.5;
+                        r.hit = false;
+                        r.orb.visible = true;
+                    }
+                });
+
+                renderer.render(scene, camera);
+            }
+            animate(0);
+
+            cleanupActiveGame = () => {
+                done = true;
+                cancelAnimationFrame(rafId);
+                renderer.dispose();
+            };
+        }
+
+        // --- B. ҚОЛМЕН СҮЙРЕП СЕБЕТКЕ САЛУ (Pointer Drag & Drop Sorting) ---
+        function initDragSortGame(task, taskKey) {
+            const arena = document.getElementById('drag-sort-arena');
+            if (!arena) return;
+            const tokens = arena.querySelectorAll('.drag-token');
+            const baskets = arena.querySelectorAll('.drop-basket');
+            let placedCount = 0;
+
+            tokens.forEach(token => {
+                let startX = 0, startY = 0;
+                let dragging = false;
+
+                token.onpointerdown = e => {
+                    if (token.dataset.placed === '1') return;
+                    e.preventDefault();
+                    dragging = true;
+                    token.setPointerCapture(e.pointerId);
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    token.style.position = 'relative';
+                    token.style.zIndex = '50';
+                    playTone(440, 0.08);
+                };
+
+                token.onpointermove = e => {
+                    if (!dragging) return;
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    token.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
+
+                    baskets.forEach(b => {
+                        const r = b.getBoundingClientRect();
+                        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                            b.classList.add('drag-over');
+                        } else {
+                            b.classList.remove('drag-over');
+                        }
+                    });
+                };
+
+                token.onpointerup = e => {
+                    if (!dragging) return;
+                    dragging = false;
+                    token.releasePointerCapture(e.pointerId);
+                    baskets.forEach(b => b.classList.remove('drag-over'));
+
+                    let matchedBasket = null;
+                    baskets.forEach(b => {
+                        const r = b.getBoundingClientRect();
+                        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                            matchedBasket = b;
+                        }
+                    });
+
+                    if (matchedBasket && matchedBasket.dataset.basketId === token.dataset.target) {
+                        token.dataset.placed = '1';
+                        token.style.transform = '';
+                        token.style.position = '';
+                        token.style.zIndex = '';
+                        token.classList.remove('drag-token', 'border-slate-200');
+                        token.classList.add('border-mint', 'bg-emerald-50', 'scale-90', 'animate-pop');
+                        matchedBasket.querySelector('.basket-items').appendChild(token);
+                        playTone(660, 0.15, 'triangle');
+                        placedCount++;
+                        if (placedCount >= task.items.length) {
+                            setTimeout(() => awardStar(taskKey, 'Тамаша сұрыптау! 🧺', 'Барлық заттарды өз себетіне салдың!'), 300);
+                        }
+                    } else {
+                        if (matchedBasket) {
+                            playErrorSound();
+                            matchedBasket.classList.add('animate-shake');
+                            setTimeout(() => matchedBasket.classList.remove('animate-shake'), 400);
+                        }
+                        token.style.transition = 'transform 0.25s ease';
+                        token.style.transform = 'translate(0px, 0px)';
+                        setTimeout(() => { token.style.transition = ''; token.style.zIndex = ''; }, 250);
+                    }
+                };
+            });
+        }
+
+        // --- C. 1-2-3 ҰЯШЫҚТАРЫНА СҮЙРЕП ҚОЮ (Drag Sequence) ---
+        function initDragSequenceGame(task, taskKey) {
+            const arena = document.getElementById('drag-seq-arena');
+            if (!arena) return;
+            const tokens = arena.querySelectorAll('.drag-token');
+            const slots = arena.querySelectorAll('.drop-basket');
+            let solved = 0;
+
+            tokens.forEach(token => {
+                let startX = 0, startY = 0, dragging = false;
+
+                token.onpointerdown = e => {
+                    if (token.dataset.placed === '1') return;
+                    e.preventDefault();
+                    dragging = true;
+                    token.setPointerCapture(e.pointerId);
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    token.style.position = 'relative';
+                    token.style.zIndex = '50';
+                    playTone(460, 0.08);
+                };
+
+                token.onpointermove = e => {
+                    if (!dragging) return;
+                    token.style.transform = `translate(${e.clientX - startX}px, ${e.clientY - startY}px) scale(1.12)`;
+                    slots.forEach(s => {
+                        const r = s.getBoundingClientRect();
+                        s.classList.toggle('drag-over', e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+                    });
+                };
+
+                token.onpointerup = e => {
+                    if (!dragging) return;
+                    dragging = false;
+                    token.releasePointerCapture(e.pointerId);
+                    slots.forEach(s => s.classList.remove('drag-over'));
+
+                    let targetSlot = null;
+                    slots.forEach(s => {
+                        const r = s.getBoundingClientRect();
+                        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                            targetSlot = s;
+                        }
+                    });
+
+                    if (targetSlot && targetSlot.dataset.stepSlot === token.dataset.stepVal) {
+                        token.dataset.placed = '1';
+                        token.style.display = 'none';
+                        targetSlot.classList.remove('border-dashed', 'border-amber-300');
+                        targetSlot.classList.add('border-mint', 'bg-emerald-50');
+                        targetSlot.innerHTML = `
+                            <span class="text-5xl sm:text-6xl mb-1 animate-pop">${token.dataset.emoji}</span>
+                            <span class="font-display font-extrabold text-sm text-emerald-700">${token.dataset.stepVal}-қадам ✅</span>
+                        `;
+                        playTone(680, 0.15, 'triangle');
+                        solved++;
+                        if (solved >= task.steps.length) {
+                            setTimeout(() => awardStar(taskKey, 'Ретімен қойдың! 🌟', '1 - 2 - 3 оқиға ретін дұрыс құрастырдың!'), 300);
+                        }
+                    } else {
+                        if (targetSlot) {
+                            playErrorSound();
+                            targetSlot.classList.add('animate-shake');
+                            setTimeout(() => targetSlot.classList.remove('animate-shake'), 400);
+                        }
+                        token.style.transition = 'transform 0.25s ease';
+                        token.style.transform = 'translate(0px, 0px)';
+                        setTimeout(() => { token.style.transition = ''; token.style.zIndex = ''; }, 250);
+                    }
+                };
+            });
+        }
+
+        // --- D. СЕБЕТТІ ЖЫЛЖЫТЫП ЗАТТАРДЫ ҚАҒЫП АЛУ (Catch Basket Canvas Game) ---
+        function initCatchBasketGame(task, taskKey) {
+            const canvas = document.getElementById('catch-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            let basketX = w / 2;
+            const basketW = 110;
+            let score = 0;
+            let falling = [];
+            let done = false;
+            let rafId;
+            let lastSpawn = 0;
+
+            function moveBasket(e) {
+                const rect = canvas.getBoundingClientRect();
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const relX = ((cx - rect.left) / rect.width) * w;
+                basketX = Math.max(basketW / 2 + 10, Math.min(w - basketW / 2 - 10, relX));
+            }
+            canvas.onpointermove = moveBasket;
+            canvas.onpointerdown = moveBasket;
+
+            function loop(t) {
+                if (done) return;
+                rafId = requestAnimationFrame(loop);
+                ctx.clearRect(0, 0, w, h);
+
+                if (t - lastSpawn > 950) {
+                    lastSpawn = t;
+                    const isGood = Math.random() > 0.25;
+                    falling.push({
+                        x: 50 + Math.random() * (w - 100),
+                        y: -30,
+                        vy: 2.6 + Math.random() * 1.4,
+                        emoji: isGood ? task.targetEmoji : task.avoidEmoji,
+                        good: isGood
+                    });
+                }
+
+                // Себет салу
+                ctx.fillStyle = '#FF6B4A';
+                ctx.beginPath();
+                ctx.roundRect(basketX - basketW / 2, h - 55, basketW, 38, 16);
+                ctx.fill();
+                ctx.font = '32px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🧺', basketX, h - 36);
+
+                for (let i = falling.length - 1; i >= 0; i--) {
+                    const item = falling[i];
+                    item.y += item.vy;
+                    ctx.font = '42px serif';
+                    ctx.fillText(item.emoji, item.x, item.y);
+
+                    if (item.y > h - 75 && item.y < h - 20 && Math.abs(item.x - basketX) < basketW / 2 + 15) {
+                        falling.splice(i, 1);
+                        if (item.good) {
+                            score++;
+                            playTone(600 + score * 40, 0.12, 'triangle');
+                            const el = document.getElementById('catch-score');
+                            if (el) el.textContent = score;
+                            if (score >= task.targetCount) {
+                                done = true;
+                                setTimeout(() => awardStar(taskKey, 'Епті қолдар! 🧺', 'Барлық жемістерді себетке жинап алдың!'), 250);
+                            }
+                        } else {
+                            playErrorSound();
+                        }
+                    } else if (item.y > h + 40) {
+                        falling.splice(i, 1);
+                    }
+                }
+            }
+            rafId = requestAnimationFrame(loop);
+
+            cleanupActiveGame = () => {
+                done = true;
+                cancelAnimationFrame(rafId);
+            };
+        }
+
+        // --- E. ҰШЫП ЖҮРГЕН КӨПІРШІКТЕРДІ ҚУЫП ЖЕТІП ЖАРУ (Physics Bubbles) ---
+        function initBubblePhysicsGame(task, taskKey) {
+            const canvas = document.getElementById('bubble-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            const colors = ['#38BDF8', '#F472B6', '#FBBF24', '#34D399', '#A78BFA'];
+            const bubbles = Array.from({ length: task.count }, (_, i) => ({
+                x: 60 + Math.random() * (w - 120),
+                y: 60 + Math.random() * (h - 120),
+                r: 36,
+                vx: (Math.random() - 0.5) * 3.2,
+                vy: (Math.random() - 0.5) * 3.2,
+                color: colors[i % colors.length],
+                popped: false
+            }));
+
+            let poppedCount = 0;
+            let done = false;
+            let rafId;
+
+            canvas.onpointerdown = e => {
+                if (done) return;
+                const rect = canvas.getBoundingClientRect();
+                const cx = ((e.clientX - rect.left) / rect.width) * w;
+                const cy = ((e.clientY - rect.top) / rect.height) * h;
+
+                bubbles.forEach(b => {
+                    if (!b.popped && Math.hypot(b.x - cx, b.y - cy) <= b.r + 14) {
+                        b.popped = true;
+                        poppedCount++;
+                        playTone(500 + poppedCount * 50, 0.12, 'sine');
+                        const el = document.getElementById('phys-bubble-score');
+                        if (el) el.textContent = poppedCount;
+                        if (poppedCount >= task.count) {
+                            done = true;
+                            setTimeout(() => awardStar(taskKey, 'Жылдам саусақтар! 💥', 'Ұшып жүрген барлық шарларды жардың!'), 250);
+                        }
+                    }
+                });
+            };
+
+            function loop() {
+                if (done) return;
+                rafId = requestAnimationFrame(loop);
+                ctx.clearRect(0, 0, w, h);
+
+                bubbles.forEach(b => {
+                    if (b.popped) return;
+                    b.x += b.vx;
+                    b.y += b.vy;
+                    if (b.x < b.r || b.x > w - b.r) b.vx *= -1;
+                    if (b.y < b.r || b.y > h - b.r) b.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                    ctx.fillStyle = b.color + '55';
+                    ctx.fill();
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = b.color;
+                    ctx.stroke();
+
+                    ctx.font = '32px serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(task.customEmoji || '🫧', b.x, b.y);
+                });
+            }
+            rafId = requestAnimationFrame(loop);
+
+            cleanupActiveGame = () => {
+                done = true;
+                cancelAnimationFrame(rafId);
+            };
+        }
+
+        // --- F. 3D ПІШІНДЕР ӘЛЕМІ (Three.js Interactive 3D Shapes) ---
+        function initShapes3DGame(task, taskKey) {
+            const box = document.getElementById('shapes-3d-stage');
+            if (!box || typeof THREE === 'undefined') return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, box.clientWidth / box.clientHeight, 0.1, 100);
+            camera.position.set(0, 0, 7.5);
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(box.clientWidth, box.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            box.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(4, 6, 6);
+            scene.add(light);
+
+            const sphere = new THREE.Mesh(
+                new THREE.SphereGeometry(0.95, 24, 24),
+                new THREE.MeshStandardMaterial({ color: 0xFF6B4A, roughness: 0.25 })
+            );
+            sphere.position.set(-2.3, 0, 0);
+            sphere.userData = { id: 'sphere' };
+
+            const cube = new THREE.Mesh(
+                new THREE.BoxGeometry(1.4, 1.4, 1.4),
+                new THREE.MeshStandardMaterial({ color: 0x3A86FF, roughness: 0.25 })
+            );
+            cube.position.set(0, 0, 0);
+            cube.userData = { id: 'cube' };
+
+            const cone = new THREE.Mesh(
+                new THREE.ConeGeometry(0.95, 1.7, 20),
+                new THREE.MeshStandardMaterial({ color: 0xFFC837, roughness: 0.25 })
+            );
+            cone.position.set(2.3, 0, 0);
+            cone.userData = { id: 'cone' };
+
+            const shapes = [sphere, cube, cone];
+            shapes.forEach(s => scene.add(s));
+
+            const raycaster = new THREE.Raycaster();
+            const pointer = new THREE.Vector2();
+            let dragging = false, prevX = 0, prevY = 0, moved = false;
+
+            box.onpointerdown = e => {
+                dragging = true;
+                moved = false;
+                prevX = e.clientX;
+                prevY = e.clientY;
+            };
+            box.onpointermove = e => {
+                if (!dragging) return;
+                if (Math.abs(e.clientX - prevX) > 4 || Math.abs(e.clientY - prevY) > 4) moved = true;
+                shapes.forEach(s => {
+                    s.rotation.y += (e.clientX - prevX) * 0.015;
+                    s.rotation.x += (e.clientY - prevY) * 0.015;
+                });
+                prevX = e.clientX;
+                prevY = e.clientY;
+            };
+            box.onpointerup = e => {
+                dragging = false;
+                if (moved) return;
+                const rect = box.getBoundingClientRect();
+                pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(pointer, camera);
+                const hits = raycaster.intersectObjects(shapes);
+                if (hits.length > 0) {
+                    const hitObj = hits[0].object;
+                    if (hitObj.userData.id === task.targetShape) {
+                        hitObj.scale.set(1.3, 1.3, 1.3);
+                        setTimeout(() => awardStar(taskKey, '3D Шебері! 🔴', 'Дөңгелек 3D шарды дәл таптың!'), 250);
+                    } else {
+                        playErrorSound();
+                    }
+                }
+            };
+
+            let rafId;
+            function animate() {
+                rafId = requestAnimationFrame(animate);
+                shapes.forEach(s => { s.rotation.y += 0.01; s.rotation.x += 0.005; });
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            cleanupActiveGame = () => {
+                cancelAnimationFrame(rafId);
+                renderer.dispose();
+            };
+        }
+
+        // --- G. 3D ДЫБЫС ЗЕРТХАНАСЫ (Three.js 3D Interactive Mouth/Tongue Model) ---
+        function initArticulation3DModel(task) {
+            const box = document.getElementById('art-3d-stage');
+            if (!box || typeof THREE === 'undefined') return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, box.clientWidth / box.clientHeight, 0.1, 100);
+            camera.position.set(0, 0.2, 4.5);
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(box.clientWidth, box.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            box.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+            const light = new THREE.DirectionalLight(0xffffff, 0.9);
+            light.position.set(3, 5, 5);
+            scene.add(light);
+
+            const mouthGroup = new THREE.Group();
+            scene.add(mouthGroup);
+
+            // Ерін сақинасы (3D Torus)
+            const lips = new THREE.Mesh(
+                new THREE.TorusGeometry(1.1, 0.28, 20, 48),
+                new THREE.MeshStandardMaterial({ color: 0xFB7185, roughness: 0.3 })
+            );
+            mouthGroup.add(lips);
+
+            // Тістер
+            const teeth = new THREE.Mesh(
+                new THREE.BoxGeometry(1.3, 0.28, 0.3),
+                new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.2 })
+            );
+            teeth.position.set(0, 0.65, -0.1);
+            mouthGroup.add(teeth);
+
+            // Қозғалатын 3D тіл
+            const tongue = new THREE.Mesh(
+                new THREE.SphereGeometry(0.65, 24, 24),
+                new THREE.MeshStandardMaterial({ color: 0xE11D48, roughness: 0.35 })
+            );
+            tongue.scale.set(0.9, 0.45, 1.4);
+            tongue.position.set(0, -0.35, 0.1);
+            mouthGroup.add(tongue);
+
+            let dragging = false, prevX = 0, prevY = 0;
+            box.onpointerdown = e => { dragging = true; prevX = e.clientX; prevY = e.clientY; };
+            window.addEventListener('pointerup', () => dragging = false);
+            box.onpointermove = e => {
+                if (!dragging) return;
+                mouthGroup.rotation.y += (e.clientX - prevX) * 0.02;
+                mouthGroup.rotation.x += (e.clientY - prevY) * 0.02;
+                prevX = e.clientX;
+                prevY = e.clientY;
+            };
+
+            let rafId;
+            function animate(t) {
+                rafId = requestAnimationFrame(animate);
+                tongue.position.y = -0.25 + Math.sin(t * 0.012) * 0.28;
+                tongue.rotation.x = Math.sin(t * 0.012) * 0.3;
+                renderer.render(scene, camera);
+            }
+            animate(0);
+
+            cleanupActiveGame = () => {
+                cancelAnimationFrame(rafId);
+                renderer.dispose();
+            };
+        }
+
+        // --- H. PECS КАРТОЧКАЛАРЫН СҮЙРЕП СӨЙЛЕМ ҚҰРАУ ---
+        function initPecsDragGame(task, taskKey) {
+            const arena = document.getElementById('pecs-drag-arena');
+            if (!arena) return;
+            const tokens = arena.querySelectorAll('.drag-token');
+            const slots = arena.querySelectorAll('.drop-basket');
+            let filled = 0;
+
+            tokens.forEach(token => {
+                let startX = 0, startY = 0, dragging = false;
+
+                token.onpointerdown = e => {
+                    if (token.dataset.placed === '1') return;
+                    e.preventDefault();
+                    dragging = true;
+                    token.setPointerCapture(e.pointerId);
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    token.style.position = 'relative';
+                    token.style.zIndex = '50';
+                    playTone(480, 0.08);
+                };
+
+                token.onpointermove = e => {
+                    if (!dragging) return;
+                    token.style.transform = `translate(${e.clientX - startX}px, ${e.clientY - startY}px) scale(1.12)`;
+                    slots.forEach(s => {
+                        const r = s.getBoundingClientRect();
+                        s.classList.toggle('drag-over', e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+                    });
+                };
+
+                token.onpointerup = e => {
+                    if (!dragging) return;
+                    dragging = false;
+                    token.releasePointerCapture(e.pointerId);
+                    slots.forEach(s => s.classList.remove('drag-over'));
+
+                    let targetSlot = null;
+                    slots.forEach(s => {
+                        const r = s.getBoundingClientRect();
+                        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                            targetSlot = s;
+                        }
+                    });
+
+                    if (targetSlot && !targetSlot.dataset.done && targetSlot.dataset.expected === token.dataset.pecsWord) {
+                        token.dataset.placed = '1';
+                        token.style.display = 'none';
+                        targetSlot.dataset.done = '1';
+                        targetSlot.classList.add('border-mint', 'bg-emerald-50');
+                        targetSlot.innerHTML = `
+                            <div class="text-5xl mb-1 animate-pop">${token.dataset.pecsEmoji}</div>
+                            <div class="font-display font-extrabold text-base text-emerald-800">${token.dataset.pecsWord}</div>
+                        `;
+                        playTone(680, 0.15, 'triangle');
+                        filled++;
+                        if (filled >= task.targetSequence.length) {
+                            setTimeout(() => awardStar(taskKey, 'Тамаша сөйлем! 🗂️', 'Карточкаларды сүйреп сөйлем құрастырдың!'), 300);
+                        }
+                    } else {
+                        if (targetSlot) {
+                            playErrorSound();
+                            targetSlot.classList.add('animate-shake');
+                            setTimeout(() => targetSlot.classList.remove('animate-shake'), 400);
+                        }
+                        token.style.transition = 'transform 0.25s ease';
+                        token.style.transform = 'translate(0px, 0px)';
+                        setTimeout(() => { token.style.transition = ''; token.style.zIndex = ''; }, 250);
+                    }
+                };
+            });
+        }
+
+        // --- I. БАСҚА ИНТЕРАКТИВТІ ОЙЫНДАР (Ырғақ, Саусақпен сызу, Екі қол) ---
+        function addRhythmTap(symbol, pattern, taskKey) {
+            if (!taskRuntimeState.rhythmTaps) taskRuntimeState.rhythmTaps = [];
+            const idx = taskRuntimeState.rhythmTaps.length;
+
+            if (pattern[idx] === symbol) {
+                playTone(symbol === '👏' ? 520 : 720, 0.12, 'triangle');
+                taskRuntimeState.rhythmTaps.push(symbol);
+                const strip = document.getElementById('rhythm-user-strip');
+                if (strip) {
+                    strip.innerHTML = taskRuntimeState.rhythmTaps
+                        .map(s => `<span class="text-4xl bg-white p-2.5 rounded-2xl border-2 border-mint shadow-sm animate-pop">${s}</span>`)
+                        .join('');
+                }
+                if (taskRuntimeState.rhythmTaps.length === pattern.length) {
+                    setTimeout(() => awardStar(taskKey, 'Керемет ырғақ!', 'Шапалақты дәл қайталадың!'), 350);
+                }
+            } else {
+                playErrorSound();
+                const strip = document.getElementById('rhythm-user-strip');
+                if (strip) {
+                    strip.classList.add('animate-shake', 'border-coral');
+                    setTimeout(() => strip.classList.remove('animate-shake', 'border-coral'), 400);
+                }
+            }
+        }
+
+        function initTraceCanvas(startEmoji, endEmoji, pathType, taskKey) {
+            const canvas = document.getElementById('trace-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            function drawGuide() {
+                ctx.clearRect(0, 0, w, h);
+                ctx.save();
+                ctx.strokeStyle = '#CBD5E1';
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                ctx.setLineDash([16, 16]);
+                ctx.beginPath();
+                if (pathType === 'zigzag') {
+                    ctx.moveTo(75, h / 2);
+                    ctx.lineTo(190, 50);
+                    ctx.lineTo(310, h - 50);
+                    ctx.lineTo(430, 50);
+                    ctx.lineTo(w - 75, h / 2);
+                } else {
+                    ctx.moveTo(75, h / 2);
+                    ctx.bezierCurveTo(190, 20, 350, h - 20, w - 75, h / 2);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.font = '44px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(startEmoji, 45, h / 2);
+                ctx.fillText(endEmoji, w - 45, h / 2);
+            }
+
+            drawGuide();
+
+            let drawing = false;
+            let strokePoints = 0;
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: ((clientX - rect.left) / rect.width) * w,
+                    y: ((clientY - rect.top) / rect.height) * h
+                };
+            }
+
+            function startDraw(e) {
+                e.preventDefault();
+                drawing = true;
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            }
+
+            function moveDraw(e) {
+                if (!drawing) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                ctx.strokeStyle = '#9B5DE5';
+                ctx.lineWidth = 10;
+                ctx.lineCap = 'round';
+                ctx.setLineDash([]);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                strokePoints++;
+                if (strokePoints > 45 && pos.x > w - 95) {
+                    drawing = false;
+                    awardStar(taskKey, 'Керемет суретші!', 'Жолды дәл әрі әдемі сызып шықтың!');
+                }
+            }
+
+            function endDraw() { drawing = false; }
+
+            canvas.onmousedown = startDraw;
+            canvas.onmousemove = moveDraw;
+            window.onmouseup = endDraw;
+            canvas.ontouchstart = startDraw;
+            canvas.ontouchmove = moveDraw;
+            canvas.ontouchend = endDraw;
+        }
+
+        function tapNeuroSide(side, targetHits, taskKey) {
+            const leftBtn = document.getElementById('neuro-left-btn');
+            const rightBtn = document.getElementById('neuro-right-btn');
+
+            if (side === 'left') {
+                taskRuntimeState.neuroLeftReady = true;
+                if (leftBtn) leftBtn.classList.add('ring-4', 'ring-mint', 'scale-95');
+            } else {
+                taskRuntimeState.neuroRightReady = true;
+                if (rightBtn) rightBtn.classList.add('ring-4', 'ring-mint', 'scale-95');
+            }
+
+            if (taskRuntimeState.neuroLeftReady && taskRuntimeState.neuroRightReady) {
+                taskRuntimeState.neuroHits = (taskRuntimeState.neuroHits || 0) + 1;
+                taskRuntimeState.neuroLeftReady = false;
+                taskRuntimeState.neuroRightReady = false;
+                playTone(620, 0.12, 'triangle');
+
+                const hitsEl = document.getElementById('neuro-hits');
+                if (hitsEl) hitsEl.textContent = taskRuntimeState.neuroHits;
+
+                setTimeout(() => {
+                    if (leftBtn) leftBtn.classList.remove('ring-4', 'ring-mint', 'scale-95');
+                    if (rightBtn) rightBtn.classList.remove('ring-4', 'ring-mint', 'scale-95');
+                }, 220);
+
+                if (taskRuntimeState.neuroHits >= targetHits) {
+                    setTimeout(() => awardStar(taskKey, 'Супер ми!', 'Екі қолмен жаттығуды тамаша орындадың!'), 300);
+                }
+            }
+        }
+
+        // ==========================================
+        // 9. ТІЛ ОЙЫНЫ (АРТИКУЛЯЦИЯЛЫҚ ГИМНАСТИКА)
+        // ==========================================
+        let gymTimerInterval = null;
+
+        function renderGymPage() {
+            return `
+                <div class="max-w-5xl mx-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <button onclick="navigateTo('home')" class="btn-3d px-4 py-2.5 rounded-2xl bg-white border-2 border-slate-200 font-display font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                            <span>⬅️</span> Басты бетке
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-[32px] border-4 border-sunny p-6 sm:p-8 shadow-card mb-8 text-center">
+                        <span class="text-5xl mb-2 inline-block">😛</span>
+                        <h1 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-800 mb-2">
+                            Көңілді тіл жаттығулары
+                        </h1>
+                        <p class="text-slate-600 font-bold text-base sm:text-lg">
+                            Айнаға қарап, суреттегі тілдің қимылын қайтала!
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        ${GYM_EXERCISES.map((ex, idx) => `
+                            <div class="bg-white rounded-[28px] border-4 border-amber-200 p-6 shadow-card flex flex-col justify-between text-center">
+                                <div>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="px-3 py-1 rounded-xl bg-amber-100 text-amber-800 font-display font-extrabold text-xs">
+                                            ${idx + 1}-ЖАТТЫҒУ
+                                        </span>
+                                        <span class="text-3xl">${ex.emoji}</span>
+                                    </div>
+                                    <h3 class="font-display font-extrabold text-2xl text-slate-800 mb-3">${ex.title}</h3>
+
+                                    <div class="bg-amber-50/70 rounded-3xl py-4 mb-4 border-2 border-amber-100">
+                                        <svg class="w-48 h-36 mx-auto" viewBox="0 0 200 150" fill="none">
+                                            <ellipse cx="100" cy="75" rx="70" ry="52" fill="#FDA4AF" stroke="#E11D48" stroke-width="5"/>
+                                            <ellipse cx="100" cy="75" rx="54" ry="38" fill="#881337"/>
+                                            <path d="M62 48H138V60C138 63 135 65 132 65H68C65 65 62 63 62 60V48Z" fill="white"/>
+                                            <path d="M76 112C76 84 90 68 100 68C110 68 124 84 124 112" fill="#FB7185" stroke="#F43F5E" stroke-width="3" class="${ex.animClass}"/>
+                                        </svg>
+                                    </div>
+
+                                    <p class="text-slate-600 font-bold text-sm sm:text-base mb-5">${ex.desc}</p>
+                                </div>
+
+                                <button id="gym-btn-${ex.id}" onclick="startGymTimer('${ex.id}', ${ex.seconds})" class="btn-3d w-full py-3.5 rounded-2xl bg-sunny text-slate-900 font-display font-extrabold text-lg shadow-3d-sunny">
+                                    ⏱️ Бастау (${ex.seconds} сек)
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function startGymTimer(id, seconds) {
+            if (gymTimerInterval) clearInterval(gymTimerInterval);
+            let left = seconds;
+            const btn = document.getElementById(`gym-btn-${id}`);
+            if (!btn) return;
+
+            btn.classList.remove('bg-sunny', 'text-slate-900');
+            btn.classList.add('bg-mint', 'text-white');
+            btn.textContent = `⏳ Жасап жатырмыз: ${left} сек`;
+
+            gymTimerInterval = setInterval(() => {
+                left--;
+                if (left > 0) {
+                    btn.textContent = `⏳ Жасап жатырмыз: ${left} сек`;
+                } else {
+                    clearInterval(gymTimerInterval);
+                    btn.textContent = `✅ Жарайсың! Қайталау`;
+                    awardStar(`gym_${id}`, 'Тілің шынықты!', 'Артикуляциялық жаттығуды тамаша жасадың!');
+                }
+            }, 1000);
+        }
+
+        // ==========================================
+        // 10. «НӘТИЖЕЛЕР» БЕТІ (16:9 ФОРМАТТАҒЫ 16 ФОТО)
+        // ==========================================
+        function renderResultsPage() {
+            const photos = Array.from({ length: 16 }, (_, i) => ({
+                num: i + 1,
+                src: `images/result${i + 1}.jpeg`,
+                title: `Нәтиже №${i + 1}`
+            }));
+
+            return `
+                <div class="max-w-7xl mx-auto">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                        <button onclick="navigateTo('home')" class="btn-3d px-4 py-2.5 rounded-2xl bg-white border-2 border-slate-200 font-display font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                            <span>⬅️</span> Басты бетке
+                        </button>
+                        <span class="px-4 py-1.5 rounded-full bg-purple-100 text-berry font-display font-extrabold text-sm">
+                            📸 16 фотосурет (16:9 формат)
+                        </span>
+                    </div>
+
+                    <div class="bg-white rounded-[32px] border-4 border-purple-200 p-6 sm:p-8 shadow-card mb-8 text-center">
+                        <span class="text-5xl mb-2 inline-block">📸</span>
+                        <h1 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-800 mb-2">
+                            Нәтижелер галереясы
+                        </h1>
+                        <p class="text-slate-600 font-bold text-base sm:text-lg max-w-2xl mx-auto">
+                            Балабақша бүлдіршіндерімен өткізілген логопедиялық сабақтар мен жетістіктер көрінісі
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        ${photos.map(p => `
+                            <div onclick="openLightbox('${p.src}', '${p.title}')" class="card-hover cursor-pointer bg-white rounded-3xl border-4 border-slate-100 hover:border-berry overflow-hidden shadow-card group">
+                                <div class="aspect-video bg-gradient-to-br from-sky-50 via-purple-50 to-amber-50 relative overflow-hidden flex items-center justify-center">
+                                    <img src="${p.src}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="hidden w-full h-full flex-col items-center justify-center p-4 text-center">
+                                        <span class="text-4xl mb-1">🖼️</span>
+                                        <span class="font-display font-extrabold text-sm text-berry">${p.title} (16:9)</span>
+                                        <span class="text-[11px] font-bold text-slate-400 mt-0.5">${p.src}</span>
+                                    </div>
+                                    <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-xl bg-white/90 backdrop-blur-sm font-display font-extrabold text-xs text-slate-700 shadow-sm">
+                                        #${p.num}
+                                    </span>
+                                </div>
+                                <div class="p-3.5 flex items-center justify-between">
+                                    <span class="font-display font-extrabold text-sm text-slate-700">${p.title}</span>
+                                    <span class="text-xs font-bold text-berry">🔍 Үлкейту</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openLightbox(src, caption) {
+            const modal = document.getElementById('photo-lightbox');
+            const img = document.getElementById('lightbox-img');
+            const cap = document.getElementById('lightbox-caption');
+            img.src = src;
+            cap.textContent = caption;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeLightbox() {
+            const modal = document.getElementById('photo-lightbox');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // ==========================================
+        // 11. ЖҰЛДЫЗДАР МЕН СТИКЕРЛЕР БЕТІ
+        // ==========================================
+        function renderRewardsPage() {
+            const stickers = [
+                { stars: 1, emoji: '🐣', name: 'Алғашқы қадам' },
+                { stars: 5, emoji: '🦊', name: 'Зерек түлкішек' },
+                { stars: 10, emoji: '🦁', name: 'Батыл арыстан' },
+                { stars: 15, emoji: '🚀', name: '3D Ғарышкер' },
+                { stars: 20, emoji: '👑', name: 'ЛогоКейс чемпионы' }
+            ];
+
+            return `
+                <div class="max-w-4xl mx-auto text-center">
+                    <div class="bg-white rounded-[32px] border-4 border-sunny p-8 shadow-card mb-8">
+                        <div class="text-7xl mb-3 animate-bounce">🏆</div>
+                        <h1 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-800 mb-2">
+                            Менің жетістіктерім
+                        </h1>
+                        <p class="text-slate-600 font-bold text-lg mb-6">
+                            Сен жинаған барлық жұлдыздар саны:
+                        </p>
+                        <div class="inline-flex items-center gap-3 bg-amber-100 border-4 border-sunny px-8 py-4 rounded-3xl">
+                            <span class="text-4xl">⭐</span>
+                            <span class="font-display font-extrabold text-4xl text-amber-700">${userProgress.stars}</span>
+                        </div>
+                    </div>
+
+                    <h2 class="font-display font-extrabold text-2xl text-slate-800 mb-5">Жинақталған стикерлер</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                        ${stickers.map(st => {
+                            const unlocked = userProgress.stars >= st.stars;
+                            return `
+                                <div class="rounded-3xl p-5 border-4 ${unlocked ? 'bg-white border-mint shadow-card' : 'bg-slate-100 border-slate-200 opacity-60'}">
+                                    <div class="text-5xl mb-2 ${unlocked ? '' : 'grayscale'}">${st.emoji}</div>
+                                    <div class="font-display font-extrabold text-sm text-slate-800 mb-1">${st.name}</div>
+                                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${unlocked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">
+                                        ${unlocked ? '✅ Ашылды' : `⭐ ${st.stars} жұлдыз`}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.onload = function() {
+            saveProgress();
+            render();
+        };
+    </script>
+</body>
+</html>
+```
+
+Платформадағы ойындар жай ғана батырма басудан **белсенді қозғалыс пен 3D ойындарға** ауыстырылды:
+1. **3D Ғарыш ракетасы (Three.js):** Бала саусағымен 3D ракетаны оңға-солға, жоғары-төмен қозғалтып, сақиналардың ішінен өтіп жұлдыз жинайды.
+2. **Қолмен сүйреп себетке салу (Drag & Drop):** Жемістер мен көкөністерді, үй және орман жануарларын, 1-2-3 оқиға ретін және PECS карточкаларын саусақпен ұстап өз себетіне сүйреп апарады.
+3. **Жылжымалы себет ойыны:** Себетті саусақпен оңға-солға жылжытып, аспаннан түскен алмалар мен құлпынайларды қағып алады.
+4. **3D Пішіндер мен 3D Артикуляциялық модель:** Басты беттегі 3D кейіпкерді, 3D пішіндерді және 3D тіл/ерін моделін саусақпен айналдырып зерттеуге болады.
